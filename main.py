@@ -46,6 +46,7 @@ class GitHubRagTool:
         """
         self.repo_url = repo_url
         self.content_types = content_types
+        self.documents = "chroma_db"
 
         # Gerar ID de sessão se não fornecido
         self.session_id = (
@@ -392,6 +393,12 @@ class GitHubRagTool:
         return self.tool.run(query)
 
     def create_conversation_chain(self):
+        # Primeiro configure o retriever
+        retriever = self._setup_retriever()
+
+        # Verifique se o retriever foi configurado corretamente
+        if retriever is None:
+            raise ValueError("Não foi possível configurar o retriever")
         try:
             # Configuração da memória
             memory = ConversationBufferMemory(
@@ -417,44 +424,52 @@ class GitHubRagTool:
 
     def _setup_retriever(self):
         """
-        Configura e retorna o retriever para busca de informações relevantes.
-
-        Este método verificará se a base de dados vetorial já foi inicializada.
-        Se não, retornará None e o retriever será configurado posteriormente
-        após o carregamento dos dados do GitHub.
-
-        Returns:
-            Retriever ou None: Objeto retriever configurado para busca semântica
+        Configura e retorna um retriever para busca de informações relevantes.
         """
-        # Se o vector_db ainda não foi inicializado, retorna None
-        # Será configurado posteriormente após load_github_data() ser chamado
-        if self.vector_db is None:
-            print(
-                "Base de dados vetorial ainda não inicializada. O retriever será configurado após o carregamento dos dados."
-            )
-            return None
-
-        # Configurar o retriever a partir da base de dados vetorial
         try:
-            # Criar o retriever com busca por similaridade
-            retriever = self.vector_db.as_retriever(
-                search_type="similarity",
-                search_kwargs={
-                    "k": 5,  # Número de documentos a serem recuperados
-                    "fetch_k": 20,  # Busca inicial mais ampla
-                    "score_threshold": 0.5,  # Limiar de pontuação para relevância
-                },
-            )
+            if self.vector_db is None:
+                print("Inicializando base de dados vetorial...")
 
-            print("Retriever configurado com sucesso.")
+                # Verifica se temos documentos carregados
+                if not hasattr(self, "documents") or not self.documents:
+                    # Carrega dados do GitHub se não tivermos documentos
+                    self.load_github_data()
+
+                if not hasattr(self, "documents") or not self.documents:
+                    raise ValueError(
+                        "Não foi possível carregar documentos do repositório"
+                    )
+
+                # Converte strings em objetos Document
+                from langchain.schema import Document
+
+                doc_objects = []
+                for text in self.documents:
+                    if isinstance(text, str):
+                        doc_objects.append(Document(page_content=text))
+                    else:
+                        doc_objects.append(text)  # Caso já seja um Document
+
+                # Criar a base de dados vetorial com os documentos convertidos
+                self.vector_db = Chroma.from_documents(
+                    documents=doc_objects,
+                    embedding=OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY),
+                )
+                print(f"Base vetorial criada com {len(doc_objects)} documentos")
+
+            # Configurar e retornar o retriever
+            retriever = self.vector_db.as_retriever(
+                search_type="similarity", search_kwargs={"k": 5}
+            )
+            print("Retriever configurado com sucesso")
             return retriever
 
         except Exception as e:
-            print(f"ERRO ao configurar o retriever: {str(e)}")
+            print(f"ERRO crítico ao configurar o retriever: {str(e)}")
             import traceback
 
             traceback.print_exc()
-            return None
+            raise ValueError(f"Falha ao configurar o retriever: {str(e)}")
 
 
 def conversar_com_repo(repo_url):
@@ -489,16 +504,7 @@ def conversar_com_repo(repo_url):
         print("\n⏳ Processando...")
         result = github_agent.chat(user_input)
 
-        print(f"\n🤖 Agente: {result['response']}")
-
-        # Se quiser mostrar as fontes separadamente, descomente:
-        # if result['sources']:
-        #     print("\n📚 Fontes:")
-        #     for i, source in enumerate(result['sources'], 1):
-        #         if source["type"] == "issue":
-        #             print(f"  {i}. Issue #{source['number']}: {source['title']} - {source['url']}")
-        #         elif source["type"] == "code":
-        #             print(f"  {i}. Arquivo: {source['path']} - {source['url']}")
+        print(f"\n🤖 Agente: {result['answer']}")
 
 
 def main():
