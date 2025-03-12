@@ -1,0 +1,4 @@
+.env
+db/
+github_rag_db/
+chroma_db/
