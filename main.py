@@ -46,7 +46,7 @@ class GitHubRagTool:
         """
         self.repo_url = repo_url
         self.content_types = content_types
-        self.documents = "chroma_db"
+        self.documents = []  # Inicializa como lista vazia
 
         # Gerar ID de sessão se não fornecido
         self.session_id = (
@@ -106,16 +106,34 @@ class GitHubRagTool:
         # Inicialize a conversation chain e verifique se foi bem-sucedida
         self.conversation_chain = self.create_conversation_chain()
 
-        # Inicializar o modelo de linguagem
+        # Inicializar o modelo de linguagem primeiro
         self.llm = ChatOpenAI(model=OPENAI_MODEL)
 
-        self.retriever = self._setup_retriever()
+        # Inicializar outras variáveis necessárias
+        self.vector_db = None
+        self.issues_df = None
+        self.code_files = None
+        self.retriever = None
+        self.conversation_chain = None
 
-        if self.conversation_chain is None:
-            print("ERRO: Falha ao criar a cadeia de conversação!")
-            # Log de informações para diagnóstico
-            print(f"LLM inicializado: {self.llm is not None}")
-            print(f"Retriever inicializado: {self.retriever is not None}")
+        # Carregar dados primeiro antes de criar a cadeia
+        try:
+            self.load_github_data()
+            self.retriever = self._setup_retriever()
+
+            if self.retriever:
+                self.conversation_chain = self.create_conversation_chain()
+                if self.conversation_chain:
+                    print("✅ Cadeia de conversação inicializada com sucesso")
+                else:
+                    print("❌ Falha ao criar cadeia de conversação")
+            else:
+                print("❌ Falha ao configurar retriever")
+        except Exception as e:
+            print(f"❌ Erro durante inicialização: {str(e)}")
+            import traceback
+
+            traceback.print_exc()
 
     def setup_conversation_chain(self):
         """
@@ -136,37 +154,78 @@ class GitHubRagTool:
             verbose=True,
         )
 
-    def load_github_data(self, limit_issues=50, max_files=30):
-        """
-        Carrega os dados do GitHub e cria a base de conhecimento
-        """
-        print("Buscando issues...")
-        self.issues_df = self.fetch_issues(limit=limit_issues)
-        print(f"Encontrados {len(self.issues_df)} issues")
+    def load_github_data(self, limit_issues=100, max_files=60):
+        """Carrega dados do GitHub e cria a base de conhecimento"""
+        try:
+            print("🔍 Buscando issues...")
+            self.issues_df = self.fetch_issues(limit=limit_issues)
+            print(f"✅ Encontrados {len(self.issues_df)} issues")
 
-        print("Buscando arquivos de código...")
-        self.code_files = self.fetch_code_files(max_files=max_files)
-        print(f"Encontrados {len(self.code_files)} arquivos de código")
+            print("🔍 Buscando arquivos de código...")
+            self.code_files = self.fetch_code_files(max_files=max_files)
+            print(f"✅ Encontrados {len(self.code_files)} arquivos de código")
 
-        # Criar base RAG
-        print("Criando base RAG...")
-        self.vector_db = self.create_rag_database(self.issues_df, self.code_files)
+            # Verificar se temos dados para processar
+            if len(self.issues_df) == 0 and len(self.code_files) == 0:
+                print("⚠️ Nenhum dado encontrado no repositório")
+                return False
+
+            # Criar base RAG
+            print("🔄 Criando base RAG...")
+            self.vector_db = self.create_rag_database(self.issues_df, self.code_files)
+
+            if self.vector_db:
+                print("✅ Base RAG criada com sucesso")
+                return True
+            else:
+                print("❌ Falha ao criar base RAG")
+                return False
+
+        except Exception as e:
+            print(f"❌ Erro ao carregar dados: {str(e)}")
+            import traceback
+
+            traceback.print_exc()
+            return False
 
     def chat(self, user_input):
-        if self.conversation_chain is None:
-            # Tente criar a chain novamente
-            self.conversation_chain = self.create_conversation_chain()
-
-            # Se ainda for None, retorne uma mensagem de erro
+        """Processa entrada do usuário e retorna resposta"""
+        try:
             if self.conversation_chain is None:
-                return {
-                    "answer": "Erro interno: A cadeia de conversação não foi inicializada corretamente. Verifique as configurações e tente novamente.",
-                    "sources": [],
-                }
+                print("⚠️ Cadeia de conversação não inicializada, tentando recriar...")
 
-        # Continua com o código normal
-        result = self.conversation_chain({"question": user_input})
-        return result
+                # Verificar se temos dados carregados
+                if self.vector_db is None:
+                    print("🔄 Carregando dados do repositório...")
+                    self.load_github_data()
+
+                # Configurar retriever
+                self.retriever = self._setup_retriever()
+
+                # Criar cadeia
+                self.conversation_chain = self.create_conversation_chain()
+
+                if self.conversation_chain is None:
+                    return {
+                        "answer": "Erro interno: Não foi possível inicializar o sistema de busca. Por favor, tente novamente ou verifique as configurações.",
+                        "sources": [],
+                    }
+
+            print("🔍 Processando consulta...")
+            result = self.conversation_chain.invoke(
+                {"question": user_input}
+            )  # Use invoke em vez de __call__
+            return result
+
+        except Exception as e:
+            print(f"❌ Erro durante o processamento: {str(e)}")
+            import traceback
+
+            traceback.print_exc()
+            return {
+                "answer": f"Ocorreu um erro durante o processamento: {str(e)}",
+                "sources": [],
+            }
 
     def _extract_source_info(self, doc):
         """Extrai informações da fonte do documento"""
@@ -423,41 +482,16 @@ class GitHubRagTool:
             return None
 
     def _setup_retriever(self):
-        """
-        Configura e retorna um retriever para busca de informações relevantes.
-        """
+        """Configura e retorna um retriever para busca de informações"""
         try:
             if self.vector_db is None:
-                print("Inicializando base de dados vetorial...")
+                print("Base de dados vetorial não inicializada. Carregando dados...")
+                self.load_github_data()
 
-                # Verifica se temos documentos carregados
-                if not hasattr(self, "documents") or not self.documents:
-                    # Carrega dados do GitHub se não tivermos documentos
-                    self.load_github_data()
+            if self.vector_db is None:
+                raise ValueError("Falha ao criar base de dados vetorial")
 
-                if not hasattr(self, "documents") or not self.documents:
-                    raise ValueError(
-                        "Não foi possível carregar documentos do repositório"
-                    )
-
-                # Converte strings em objetos Document
-                from langchain.schema import Document
-
-                doc_objects = []
-                for text in self.documents:
-                    if isinstance(text, str):
-                        doc_objects.append(Document(page_content=text))
-                    else:
-                        doc_objects.append(text)  # Caso já seja um Document
-
-                # Criar a base de dados vetorial com os documentos convertidos
-                self.vector_db = Chroma.from_documents(
-                    documents=doc_objects,
-                    embedding=OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY),
-                )
-                print(f"Base vetorial criada com {len(doc_objects)} documentos")
-
-            # Configurar e retornar o retriever
+            # Configurar o retriever com parâmetros adequados
             retriever = self.vector_db.as_retriever(
                 search_type="similarity", search_kwargs={"k": 5}
             )
@@ -465,46 +499,80 @@ class GitHubRagTool:
             return retriever
 
         except Exception as e:
-            print(f"ERRO crítico ao configurar o retriever: {str(e)}")
+            print(f"ERRO ao configurar retriever: {str(e)}")
             import traceback
 
             traceback.print_exc()
-            raise ValueError(f"Falha ao configurar o retriever: {str(e)}")
+            return None
+
+    def verificar_inicializacao(self):
+        """Verifica se todos os componentes foram inicializados corretamente"""
+        status = {
+            "llm": self.llm is not None,
+            "vector_db": self.vector_db is not None,
+            "retriever": self.retriever is not None,
+            "conversation_chain": self.conversation_chain is not None,
+            "issues_carregados": self.issues_df is not None and len(self.issues_df) > 0,
+            "arquivos_codigo_carregados": self.code_files is not None
+            and len(self.code_files) > 0,
+        }
+
+        todos_ok = all(status.values())
+
+        if todos_ok:
+            print("✅ Sistema totalmente inicializado e pronto para uso")
+        else:
+            print("⚠️ Alguns componentes não foram inicializados corretamente:")
+            for componente, ok in status.items():
+                print(f"  {'✅' if ok else '❌'} {componente}")
+
+        return todos_ok
 
 
 def conversar_com_repo(repo_url):
-    """
-    Inicia uma conversa interativa sobre um repositório GitHub
-
-    Args:
-        repo_url: URL do repositório GitHub
-    """
+    """Inicia uma conversa interativa sobre um repositório GitHub"""
     print(f"🤖 Iniciando agente para o repositório: {repo_url}")
     print("⏳ Carregando dados e criando base de conhecimento...")
 
     # Criar o agente com ID de sessão para persistência
     session_id = f"github_{repo_url.split('/')[-2]}_{repo_url.split('/')[-1]}"
-    github_agent = GitHubRagTool(
-        repo_url=repo_url, content_types=["code", "issue", "pr"], session_id=session_id
-    )
 
-    # Carregar dados do GitHub
-    github_agent.load_github_data()
+    try:
+        github_agent = GitHubRagTool(
+            repo_url=repo_url,
+            content_types=["code", "issue", "pr"],
+            session_id=session_id,
+        )
 
-    print("\n✅ Agente pronto! Você pode começar a conversar sobre o repositório.")
-    print("📝 Digite 'sair' para encerrar a conversa\n")
+        # Verificar se tudo foi inicializado corretamente
+        if not github_agent.verificar_inicializacao():
+            print("⚠️ Alguns componentes não foram inicializados corretamente.")
+            print("🔄 Tentando recuperar...")
+            github_agent.load_github_data()
+            github_agent.retriever = github_agent._setup_retriever()
+            github_agent.conversation_chain = github_agent.create_conversation_chain()
+            github_agent.verificar_inicializacao()
 
-    while True:
-        user_input = input("👤 Você: ")
+        print("\n✅ Agente pronto! Você pode começar a conversar sobre o repositório.")
+        print("📝 Digite 'sair' para encerrar a conversa\n")
 
-        if user_input.lower() in ["sair", "exit", "quit"]:
-            print("\n👋 Até a próxima!")
-            break
+        while True:
+            user_input = input("👤 Você: ")
 
-        print("\n⏳ Processando...")
-        result = github_agent.chat(user_input)
+            if user_input.lower() in ["sair", "exit", "quit"]:
+                print("\n👋 Até a próxima!")
+                break
 
-        print(f"\n🤖 Agente: {result['answer']}")
+            print("\n⏳ Processando...")
+            result = github_agent.chat(user_input)
+
+            print(f"\n🤖 Agente: {result['answer']}")
+
+    except Exception as e:
+        print(f"❌ Erro fatal durante a inicialização: {str(e)}")
+        import traceback
+
+        traceback.print_exc()
 
 
 def main():
