@@ -132,7 +132,7 @@ class ConversationManager:
 
         # Configurar LLM
         llm = ChatOpenAI(
-            model_name=self.model_name,
+            model_name=os.environ.get("OPENAI_MODEL"),
             temperature=self.temperature,
             streaming=self.streaming,
             callbacks=callbacks,

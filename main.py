@@ -124,7 +124,7 @@ def test_lerobot():
 
         # Exibir resultado
         print(f"\n🔄 Resposta (gerada em {query_time:.2f}s):")
-        print(result.get("answer", "Resposta não fornecida"))
+        print(result.get("resposta", "Resposta não fornecida"))
 
         # Exibir fontes
         sources = result.get("sources", [])
