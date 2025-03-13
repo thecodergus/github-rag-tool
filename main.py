@@ -69,7 +69,8 @@ def test_lerobot():
     status = rag_tool.get_status()
     print("\n📊 Status da Ferramenta:")
     print(f"- Sessão: {status['session_id']}")
-    print(f"- Modelo: {status['model_name']}")
+    print(f"- Modelo de Chat: {os.environ.get("OPENAI_MODEL")}")
+    print(f"- Modelo de Embedding: {os.environ.get("OPENAI_EMBBENDING_MODEL")}")
     print(f"- Base vetorial pronta: {status['is_vectordb_ready']}")
 
     if status["vector_db"]:
