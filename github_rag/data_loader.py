@@ -52,14 +52,14 @@ class GitHubDataLoader:
         """
         if content_type == "issue":
             print("🔍 Buscando issues...")
-            self.issues_df = self.github_client.fetch_issues(limit=limit_issues)
+            self.issues_df = pd.DataFrame(self.github_client.fetch_issues())
             print(
                 f"✅ Encontrados {len(self.issues_df) if self.issues_df is not None else 0} issues"
             )
 
         elif content_type == "code":
             print("🔍 Buscando arquivos de código...")
-            self.code_files = self.github_client.fetch_code_files(max_files=max_files)
+            self.code_files = self.github_client.fetch_code_files()
             print(
                 f"✅ Encontrados {len(self.code_files) if self.code_files else 0} arquivos de código"
             )

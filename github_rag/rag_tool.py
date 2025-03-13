@@ -257,7 +257,6 @@ class GitHubRagTool:
             temperature=self.temperature,
             memory_enabled=self.config["use_memory"],
             memory_window=self.config["memory_window"],
-            max_tokens=self.config["max_tokens"],
         )
 
         self.is_conversation_ready = True

@@ -33,7 +33,7 @@ class GitHubClient:
         self.base_url = "https://api.github.com"
         self.headers = {
             "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "GitHubRAG-Client/1.0",
+            "User-Agent": "requests",
         }
 
         # Configuração de autenticação
