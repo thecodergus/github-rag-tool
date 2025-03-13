@@ -212,6 +212,8 @@ class GitHubClient:
                 elif item["type"] == "dir":
                     dirs.append(item["path"])
 
+                time.sleep(0.5)
+
             if path:
                 print()  # Nova linha após terminar o processamento do diretório
 
