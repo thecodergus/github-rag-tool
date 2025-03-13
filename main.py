@@ -39,7 +39,7 @@ def main():
     config_options = {
         "chunk_size": 50_000,  # Chunks um pouco maiores para capturar mais contexto
         "chunk_overlap": 3_000,  # Sobreposição maior para evitar perda de informação
-        "retriever_k": 7,  # Mais documentos para uma cobertura mais ampla
+        "retriever_k": 30,  # Mais documentos para uma cobertura mais ampla
         "use_memory": True,  # Habilitar memória da conversa
         "memory_window": 5,  # Janela de memória moderada
     }

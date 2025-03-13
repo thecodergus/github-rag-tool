@@ -58,12 +58,13 @@ class GitHubRagTool:
         self.config = {
             "chunk_size": 1000,
             "chunk_overlap": 200,
-            "retriever_k": 5,
-            "retriever_fetch_k": 20,
+            "retriever_k": 7,
+            "retriever_fetch_k": 50,
             "retriever_search_type": "mmr",
             "use_memory": True,
             "memory_window": 10,
             "max_tokens": 60_000,
+            "lambda_mult": 0.7,
         }
 
         # Inicializar componentes básicos

@@ -34,26 +34,20 @@ O GitHub RAG Tool é um projeto dedicado à criação de agentes inteligentes ca
 
 3. Configure o arquivo `.env` com suas credenciais:
    ```
-   OPENAI_API_KEY=sua_chave_openai
-   GITHUB_API_TOKEN=seu_token_github_opcional
+   OPENAI_API_KEY=<sua_chave_openai>
+   OPENAI_MODEL=gpt-4o
    OPENAI_EMBBENDING_MODEL=text-embedding-ada-002
+   GITHUB_API_TOKEN=<seu_token_github>
    ```
 
 ## 🔍 Como Usar
 
 ### Uso Básico
 
-Execute o script principal fornecendo a URL do repositório que deseja analisar:
-
-```bash
-python main.py --repo_url https://github.com/username/repo
-```
-
-Ou inicie o script sem argumentos e forneça a URL quando solicitado:
+Execute o script sem argumentos e forneça a URL quando solicitado:
 
 ```bash
 python main.py
-# Digite a URL do repositório GitHub: https://github.com/username/repo
 ```
 
 ### Fluxo de Trabalho
@@ -63,15 +57,6 @@ python main.py
 3. **Interação**: Faça perguntas sobre o repositório e receba respostas contextualizadas
 4. **Salvamento**: A sessão é automaticamente salva para uso futuro
 
-### Exemplos de Perguntas
-
-- "Qual é o propósito principal deste repositório?"
-- "Como instalo e configuro este projeto?"
-- "Quais são as principais dependências?"
-- "Explique a arquitetura do sistema"
-- "Como posso contribuir para este projeto?"
-- "Quais issues estão abertas atualmente?"
-- "Mostre-me exemplos de como usar a API"
 
 ## ⚙️ Configurações Avançadas
 

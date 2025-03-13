@@ -281,8 +281,8 @@ class VectorStore:
         # Configurações padrão otimizadas para cada tipo de busca
         if search_type == "mmr":
             default_search_kwargs = {
-                "k": 7,
-                "fetch_k": 30,  # Busca um conjunto maior para aplicar diversificação
+                "k": 10,
+                "fetch_k": 50,  # Busca um conjunto maior para aplicar diversificação
                 "lambda_mult": 0.7,  # Equilibrio entre relevância (1.0) e diversidade (0.0)
             }
         elif search_type == "similarity_score_threshold":
