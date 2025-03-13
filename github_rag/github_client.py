@@ -32,9 +32,20 @@ class GitHubClient:
     def fetch_issues(
         self, state: str = "all", limit: Optional[int] = None
     ) -> pd.DataFrame:
-        """Busca issues do repositório"""
+        """
+        Busca issues do repositório e seus comentários
+
+        Args:
+            state: Estado dos issues ('open', 'closed', 'all')
+            limit: Número máximo de issues a serem buscados (None para todos)
+
+        Returns:
+            DataFrame com issues e seus comentários
+        """
         issues = []
         page = 1
+
+        print("🔍 Buscando issues...")
 
         while limit is None or len(issues) < limit:
             url = f"{self.api_base}/issues"
@@ -42,6 +53,7 @@ class GitHubClient:
             response = requests.get(url, headers=self.headers, params=params)
 
             if response.status_code != 200:
+                print(f"⚠️ Erro ao buscar issues: {response.status_code}")
                 break
 
             page_issues = response.json()
@@ -50,18 +62,100 @@ class GitHubClient:
 
             issues.extend(page_issues)
             page += 1
+            print(f"📊 Encontrados {len(issues)} issues até agora...", end="\r")
 
         if limit is not None:
             issues = issues[:limit]
+
+        print(f"\n✅ Total de {len(issues)} issues encontrados")
 
         # Converter para DataFrame e processar
         if not issues:
             return pd.DataFrame()
 
         df = pd.DataFrame(issues)
-        df = df[["number", "title", "body", "state", "created_at", "html_url"]]
-        df["created_at"] = pd.to_datetime(df["created_at"])
+
+        # Selecionar colunas relevantes
+        if set(["number", "title", "body", "state", "created_at", "html_url"]).issubset(
+            df.columns
+        ):
+            df = df[["number", "title", "body", "state", "created_at", "html_url"]]
+            df["created_at"] = pd.to_datetime(df["created_at"])
+
+            # Buscar comentários para cada issue
+            print("🔍 Buscando comentários para cada issue...")
+            total = len(df)
+
+            # Criar coluna de comentários
+            df["comments_data"] = None
+
+            for idx, row in df.iterrows():
+                issue_number = row["number"]
+                print(
+                    f"💬 Buscando comentários do issue #{issue_number} ({idx+1}/{total})",
+                    end="\r",
+                )
+
+                comments = self.fetch_issue_comments(issue_number)
+                df.at[idx, "comments_data"] = comments
+
+            print(f"\n✅ Comentários buscados para {total} issues")
+
         return df
+
+    def fetch_issue_comments(self, issue_number: int) -> List[Dict[str, Any]]:
+        """
+        Busca todos os comentários de um issue específico
+
+        Args:
+            issue_number: Número do issue
+
+        Returns:
+            Lista de comentários com seus metadados
+        """
+        comments = []
+        page = 1
+
+        while True:
+            url = f"{self.api_base}/issues/{issue_number}/comments"
+            params = {"page": page, "per_page": 100}
+
+            try:
+                response = requests.get(url, headers=self.headers, params=params)
+
+                if response.status_code != 200:
+                    print(
+                        f"⚠️ Erro ao buscar comentários do issue #{issue_number}: {response.status_code}"
+                    )
+                    break
+
+                page_comments = response.json()
+                if not page_comments:
+                    break
+
+                comments.extend(page_comments)
+                page += 1
+
+            except Exception as e:
+                print(
+                    f"❌ Erro ao buscar comentários do issue #{issue_number}: {str(e)}"
+                )
+                break
+
+        # Processar e formatar comentários
+        formatted_comments = []
+        for comment in comments:
+            formatted_comments.append(
+                {
+                    "id": comment["id"],
+                    "user": comment["user"]["login"],
+                    "body": comment["body"],
+                    "created_at": comment["created_at"],
+                    "html_url": comment["html_url"],
+                }
+            )
+
+        return formatted_comments
 
     def fetch_code_files(
         self, path: str = "", max_files: Optional[int] = None
