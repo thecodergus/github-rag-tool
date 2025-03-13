@@ -34,8 +34,14 @@ def setup_environment(
     from dotenv import load_dotenv
 
     # Valores padrão
-    required_keys = required_keys or ["OPENAI_API_KEY"]
-    optional_keys = optional_keys or ["MONGODB_URI", "GITHUB_TOKEN", "LOG_LEVEL"]
+    required_keys = required_keys or [
+        "OPENAI_API_KEY",
+        "GITHUB_TOKEN",
+        "MONGODB_URI",
+        "OPENAI_MODEL",
+        "OPENAI_EMBBENDING_MODEL",
+    ]
+    optional_keys = optional_keys or ["LOG_LEVEL"]
 
     # Carregar variáveis de ambiente
     if os.path.exists(env_file):

@@ -67,7 +67,9 @@ class GitHubRagTool:
         }
 
         # Inicializar componentes básicos
-        self.github_client = GitHubClient(repo_url)
+        self.github_client = GitHubClient(
+            repo_url, token=os.environ.get("GITHUB_API_TOKEN")
+        )
         self.data_loader = GitHubDataLoader(self.github_client)
         self.vector_store = VectorStore(
             embeddings_model=embeddings_model,

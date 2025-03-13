@@ -38,7 +38,7 @@ def test_lerobot():
             "issue",
             "pull_request",
         ],  # Incluindo PRs para mais contexto
-        custom_model="gpt-4o",
+        custom_model=os.environ.get("OPENAI_EMBBENDING_MODEL"),
         temperature=0.2,  # Temperatura mais baixa para respostas mais consistentes
     )
 
