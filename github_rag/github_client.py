@@ -720,15 +720,134 @@ class GitHubClient:
 
         if file_extensions is None:
             file_extensions = [
-                ".py",
-                ".js",
-                ".java",
-                ".cpp",
-                ".h",
-                ".c",
-                ".ts",
-                ".go",
-                ".rb",
+                # Linguagens de programação populares
+                ".py",  # Python
+                ".js",  # JavaScript
+                ".ts",  # TypeScript
+                ".jsx",  # React JavaScript
+                ".tsx",  # React TypeScript
+                ".java",  # Java
+                ".c",  # C
+                ".cpp",  # C++
+                ".cs",  # C#
+                ".h",  # C/C++ Header
+                ".hpp",  # C++ Header
+                ".go",  # Go
+                ".rb",  # Ruby
+                ".php",  # PHP
+                ".pl",  # Perl
+                ".pm",  # Perl Module
+                ".swift",  # Swift
+                ".kt",  # Kotlin
+                ".kts",  # Kotlin Script
+                ".rs",  # Rust
+                ".scala",  # Scala
+                ".groovy",  # Groovy
+                ".r",  # R
+                ".lua",  # Lua
+                ".m",  # Objective-C / MATLAB
+                ".mm",  # Objective-C++
+                ".f",  # Fortran
+                ".f90",  # Fortran 90
+                ".f95",  # Fortran 95
+                # Linguagens de script
+                ".sh",  # Shell script
+                ".bash",  # Bash script
+                ".zsh",  # Zsh script
+                ".ps1",  # PowerShell
+                ".bat",  # Windows Batch
+                ".cmd",  # Windows Command
+                ".vbs",  # VBScript
+                ".awk",  # AWK
+                # Linguagens de marcação e formatação
+                ".html",  # HTML
+                ".htm",  # HTML (alternativo)
+                ".xhtml",  # XHTML
+                ".xml",  # XML
+                ".svg",  # SVG
+                ".css",  # CSS
+                ".scss",  # SCSS
+                ".sass",  # Sass
+                ".less",  # Less
+                ".json",  # JSON
+                ".yaml",  # YAML
+                ".yml",  # YAML (alternativo)
+                ".toml",  # TOML
+                ".md",  # Markdown
+                ".rst",  # reStructuredText
+                ".tex",  # LaTeX
+                ".wiki",  # Wiki markup
+                # Específicas para web e frameworks
+                ".vue",  # Vue.js
+                ".svelte",  # Svelte
+                ".asp",  # Active Server Pages
+                ".aspx",  # ASP.NET
+                ".jsp",  # JavaServer Pages
+                ".cshtml",  # Razor C#
+                ".razor",  # Razor
+                ".erb",  # Ruby ERB
+                ".haml",  # Haml
+                ".pug",  # Pug (antigo Jade)
+                # Linguagens de banco de dados
+                ".sql",  # SQL
+                ".hql",  # Hive Query Language
+                ".sparql",  # SPARQL
+                # Linguagens funcionais
+                ".hs",  # Haskell
+                ".lhs",  # Literate Haskell
+                ".ml",  # OCaml
+                ".mli",  # OCaml Interface
+                ".fs",  # F#
+                ".fsi",  # F# Interface
+                ".fsx",  # F# Script
+                ".clj",  # Clojure
+                ".cljs",  # ClojureScript
+                ".erl",  # Erlang
+                ".ex",  # Elixir
+                ".exs",  # Elixir Script
+                ".elm",  # Elm
+                # Específicas para domínio
+                ".d",  # D
+                ".dart",  # Dart
+                ".cob",  # COBOL
+                ".cbl",  # COBOL
+                ".abap",  # ABAP
+                ".ada",  # Ada
+                ".adb",  # Ada Body
+                ".ads",  # Ada Spec
+                ".v",  # Verilog
+                ".vhd",  # VHDL
+                ".ino",  # Arduino
+                ".sol",  # Solidity
+                ".proto",  # Protocol Buffers
+                ".jl",  # Julia
+                ".zig",  # Zig
+                ".pas",  # Pascal
+                ".nim",  # Nim
+                ".cr",  # Crystal
+                # Configuração e automação
+                ".tf",  # Terraform
+                ".tfvars",  # Terraform Variables
+                ".hcl",  # HCL
+                ".dockerfile",  # Dockerfile (sem extensão)
+                ".jenkinsfile",  # Jenkins pipeline
+                ".cmake",  # CMake
+                ".make",  # Makefile
+                ".gradle",  # Gradle
+                ".rake",  # Rake
+                ".ant",  # Ant
+                # Específicas para game dev
+                ".gd",  # Godot
+                ".as",  # ActionScript
+                ".unity",  # Unity
+                ".gml",  # GameMaker Language
+                # Outros formatos importantes
+                ".graphql",  # GraphQL
+                ".wasm",  # WebAssembly
+                ".ipynb",  # Jupyter Notebook
+                ".xaml",  # XAML
+                ".resx",  # .NET Resource
+                ".plist",  # Property List
             ]
 
         self.logger.info(
