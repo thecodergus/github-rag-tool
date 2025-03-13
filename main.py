@@ -73,7 +73,7 @@ def test_lerobot():
     print(f"- Base vetorial pronta: {status['is_vectordb_ready']}")
 
     if status["vector_db"]:
-        print(f"- Documentos indexados: {status['vector_db']['document_count']}")
+        print(f"- Documentos indexados: {status['total_documentos']}")
 
     # Loop de consulta
     print("\n💬 Modo de teste ativado para o repositório lerobot")
