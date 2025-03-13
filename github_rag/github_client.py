@@ -499,3 +499,269 @@ class GitHubClient:
             print(f"✅ Cache limpo com sucesso.")
         except Exception as e:
             print(f"❌ Erro ao limpar cache: {str(e)}")
+
+    def fetch_code_files(
+        self, path: str = "", max_files: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Busca arquivos de código no repositório recursivamente.
+
+        Args:
+            path: Caminho dentro do repositório para buscar (vazio = raiz)
+            max_files: Número máximo de arquivos a serem buscados (None para sem limite)
+
+        Returns:
+            Lista de dicionários contendo informações e conteúdo dos arquivos
+        """
+        # Verifica se já atingimos o limite de arquivos
+        if max_files is not None and max_files <= 0:
+            return []
+
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/contents/{path}"
+
+        try:
+            print(f"🔍 Explorando diretório: {path or 'raiz'}")
+
+            # Usa o método _make_request que já tem tratamento de limites de taxa e cache
+            contents = self._make_request(
+                url, error_message=f"Falha ao acessar {path}", retries=3
+            )
+
+            if not contents:
+                return []
+
+            files = []
+            dirs = []
+            total_items = len(contents)
+            processed = 0
+
+            for item in contents:
+                processed += 1
+
+                if path:  # Só mostra progresso em subdiretórios
+                    print(
+                        f"📂 Processando em {path}: {processed}/{total_items}", end="\r"
+                    )
+
+                if item["type"] == "file" and self._is_code_file(item["name"]):
+                    try:
+                        # Verifica se já atingimos o limite de arquivos
+                        if max_files is not None and len(files) >= max_files:
+                            print(f"\n✅ Limite de {max_files} arquivos atingido.")
+                            return files
+
+                        print(f"📄 Baixando: {item['path']}")
+
+                        # Usa o sistema de cache para evitar downloads repetidos
+                        cache_key = self._get_cache_key(item["download_url"])
+                        content = self._get_from_cache(cache_key)
+
+                        if content is None:
+                            # Se não estiver em cache, baixa o conteúdo respeitando limites de taxa
+                            content = self._make_request(
+                                item["download_url"],
+                                use_base_url=False,
+                                error_message=f"Falha ao baixar {item['path']}",
+                                retries=2,
+                            )
+
+                            # Salva no cache para uso futuro
+                            if content is not None:
+                                self._save_to_cache(cache_key, content)
+                        else:
+                            print(f"📋 Usando versão em cache para: {item['path']}")
+
+                        # Adiciona à lista de arquivos
+                        files.append(
+                            {
+                                "name": item["path"],
+                                "path": item["path"],
+                                "download_url": item["download_url"],
+                                "url": item["html_url"],
+                                "sha": item["sha"],
+                                "content": content,
+                            }
+                        )
+
+                    except Exception as e:
+                        print(
+                            f"⚠️ Problema ao processar arquivo {item['path']}: {str(e)}"
+                        )
+
+                elif item["type"] == "dir":
+                    dirs.append(item["path"])
+
+                # Pequena pausa adaptativa para evitar atingir limites de taxa
+                remaining, _ = self._get_rate_limit_from_headers()
+                if (
+                    remaining and remaining < 100
+                ):  # Se estiver com poucas requisições disponíveis
+                    time.sleep(1.0)  # Pausa maior
+                else:
+                    time.sleep(0.3)  # Pausa normal reduzida
+
+            if path:
+                print()  # Nova linha após terminar o processamento do diretório
+
+            # Calcula quantos arquivos ainda podemos buscar se há um limite
+            remaining_files = None
+            if max_files is not None:
+                remaining_files = max_files - len(files)
+                if remaining_files <= 0:
+                    return files
+
+            # Recursivamente buscar em subdiretórios
+            for dir_path in dirs:
+                subdir_files = self.fetch_code_files(
+                    dir_path, max_files=remaining_files
+                )
+                files.extend(subdir_files)
+
+                # Atualiza o contador de arquivos restantes
+                if remaining_files is not None:
+                    remaining_files -= len(subdir_files)
+                    if remaining_files <= 0:
+                        break
+
+            return files
+
+        except Exception as e:
+            print(f"❌ Erro ao processar diretório {path}: {str(e)}")
+            # Verifica se é um erro de limite de taxa e aguarda se necessário
+            if "rate limit exceeded" in str(e).lower():
+                self.rate_limit_hits += 1
+                print("⏱️ Limite de taxa atingido. Aguardando...")
+                self._handle_rate_limit()
+                # Tenta novamente após aguardar
+                return self.fetch_code_files(path, max_files)
+
+            return []
+
+    def _is_code_file(self, filename: str) -> bool:
+        """
+        Verifica se um arquivo é considerado um arquivo de código.
+
+        Args:
+            filename: Nome do arquivo a ser verificado
+
+        Returns:
+            True se for um arquivo de código, False caso contrário
+        """
+        # Extensões comuns de arquivos de código
+        code_extensions = [
+            ".py",
+            ".js",
+            ".java",
+            ".c",
+            ".cpp",
+            ".h",
+            ".hpp",
+            ".cs",
+            ".php",
+            ".rb",
+            ".go",
+            ".swift",
+            ".kt",
+            ".ts",
+            ".html",
+            ".css",
+            ".scss",
+            ".jsx",
+            ".tsx",
+            ".vue",
+            ".rs",
+            ".sh",
+            ".bash",
+            ".sql",
+            ".json",
+        ]
+
+        # Ignora arquivos binários e outros não relevantes
+        ignored_extensions = [
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".gif",
+            ".bmp",
+            ".svg",
+            ".ico",
+            ".pdf",
+            ".doc",
+            ".docx",
+            ".ppt",
+            ".pptx",
+            ".xls",
+            ".xlsx",
+            ".zip",
+            ".tar",
+            ".gz",
+            ".rar",
+            ".exe",
+            ".dll",
+            ".so",
+            ".dylib",
+        ]
+
+        # Verifica se o arquivo tem uma extensão de código
+        has_code_extension = any(
+            filename.lower().endswith(ext) for ext in code_extensions
+        )
+
+        # Verifica se o arquivo tem uma extensão ignorada
+        has_ignored_extension = any(
+            filename.lower().endswith(ext) for ext in ignored_extensions
+        )
+
+        # Retorna True se tiver extensão de código e não for ignorado
+        return has_code_extension and not has_ignored_extension
+
+    def _get_rate_limit_from_headers(self) -> Tuple[Optional[int], Optional[int]]:
+        """
+        Extrai informações de limite de taxa dos cabeçalhos da última resposta.
+
+        Returns:
+            Tuple(remaining, reset): Requisições restantes e timestamp para reset
+        """
+        if not hasattr(self, "_last_response") or not self._last_response:
+            return None, None
+
+        headers = self._last_response.headers
+
+        # Extrai informações de limite de taxa
+        remaining = headers.get("X-RateLimit-Remaining")
+        reset = headers.get("X-RateLimit-Reset")
+
+        if remaining is not None:
+            remaining = int(remaining)
+
+        if reset is not None:
+            reset = int(reset)
+
+        return remaining, reset
+
+    def _handle_rate_limit(self):
+        """
+        Lida com situações de limite de taxa atingido.
+        Aguarda até que o limite seja restaurado.
+        """
+        _, reset_time = self.check_rate_limit()
+
+        if reset_time:
+            current_time = int(time.time())
+            wait_time = max(reset_time - current_time + 5, 10)  # +5 segundos de margem
+
+            print(
+                f"⏱️ Aguardando {wait_time} segundos para o reset do limite de taxa..."
+            )
+
+            # Feedback visual da espera
+            for i in range(wait_time):
+                time_left = wait_time - i
+                print(f"⏳ Tempo restante: {time_left}s", end="\r")
+                time.sleep(1)
+
+            print("\n✅ Limite de taxa restaurado. Continuando operação...")
+        else:
+            # Se não conseguir obter o tempo de reset, aguarda um tempo padrão
+            print("⏱️ Aguardando 60 segundos antes de tentar novamente...")
+            time.sleep(60)
