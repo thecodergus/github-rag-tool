@@ -1,25 +1,41 @@
 import os
 import json
 import time
+import argparse
 from typing import Dict, Any
 from dotenv import load_dotenv
 from github_rag import GitHubRagTool
 from github_rag.utils import setup_environment
 
 
-def test_lerobot():
-    """Função de teste específica para o repositório lerobot da Hugging Face"""
+def main():
+    """Função principal para analisar qualquer repositório do GitHub usando RAG"""
+    parser = argparse.ArgumentParser(description="GitHub RAG Tool")
+    parser.add_argument(
+        "--repo_url", type=str, help="URL do repositório GitHub para análise"
+    )
+    args = parser.parse_args()
+
     # Carregar variáveis de ambiente
     if not setup_environment():
         print("❌ Falha ao configurar o ambiente")
         return
 
-    # Configuração estática
-    repo_url = "https://github.com/huggingface/lerobot"
+    # Obter URL do repositório (da linha de comando ou input do usuário)
+    repo_url = args.repo_url
+    if not repo_url:
+        repo_url = input("Digite a URL do repositório GitHub: ").strip()
 
-    print(f"🚀 Iniciando sessão de teste com o repositório: {repo_url}")
+    if not repo_url.startswith("https://github.com/"):
+        print("❌ URL inválida. Use o formato: https://github.com/username/repo")
+        return
 
-    # Configurações pré-definidas para teste
+    print(f"🚀 Iniciando sessão com o repositório: {repo_url}")
+
+    # Extrair nome do repositório para uso em mensagens e nome de sessão
+    repo_name = repo_url.split("/")[-1]
+
+    # Configurações pré-definidas
     config_options = {
         "chunk_size": 1200,  # Chunks um pouco maiores para capturar mais contexto
         "chunk_overlap": 300,  # Sobreposição maior para evitar perda de informação
@@ -42,7 +58,7 @@ def test_lerobot():
         temperature=0.2,  # Temperatura mais baixa para respostas mais consistentes
     )
 
-    # Aplicar configurações de teste
+    # Aplicar configurações
     rag_tool.configure(config_options)
     print(f"⚙️ Configurações aplicadas: {json.dumps(config_options, indent=2)}")
 
@@ -55,7 +71,7 @@ def test_lerobot():
     # Construir base de conhecimento
     print("🔍 Construindo base de conhecimento...")
     success = rag_tool.build_knowledge_base(
-        limit_issues=100, rebuild=rebuild  # Para teste, limitamos a 100 issues
+        limit_issues=100, rebuild=rebuild  # Limitamos a 100 issues
     )
 
     if not success:
@@ -69,15 +85,15 @@ def test_lerobot():
     status = rag_tool.get_status()
     print("\n📊 Status da Ferramenta:")
     print(f"- Sessão: {status['session_id']}")
-    print(f"- Modelo de Chat: {os.environ.get("OPENAI_MODEL")}")
-    print(f"- Modelo de Embedding: {os.environ.get("OPENAI_EMBBENDING_MODEL")}")
+    print(f"- Modelo de Chat: {os.environ.get('OPENAI_MODEL')}")
+    print(f"- Modelo de Embedding: {os.environ.get('OPENAI_EMBBENDING_MODEL')}")
     print(f"- Base vetorial pronta: {status['is_vectordb_ready']}")
 
     if status["vector_db"]:
-        print(f"- Documentos indexados: {status['vector_db']["total_documentos"]}")
+        print(f"- Documentos indexados: {status['vector_db']['total_documentos']}")
 
     # Loop de consulta
-    print("\n💬 Modo de teste ativado para o repositório lerobot")
+    print(f"\n💬 Modo de consulta ativado para o repositório {repo_name}")
     print(
         "Digite 'sair' para encerrar, 'status' para ver estatísticas, ou 'ajuda' para comandos adicionais"
     )
@@ -173,7 +189,7 @@ def test_lerobot():
                         print(f"    Linguagem: {metadata.get('language', 'N/A')}")
 
     # Salvar sessão automaticamente
-    save_dir = f"./sessions/lerobot_test_{int(time.time())}"
+    save_dir = f"./sessions/{repo_name}_{int(time.time())}"
     print(f"\n💾 Salvando sessão em {save_dir}...")
     success = rag_tool.save_session(save_dir)
 
@@ -182,8 +198,8 @@ def test_lerobot():
     else:
         print("⚠️ Falha ao salvar a sessão")
 
-    print("\n🎬 Teste finalizado. Obrigado por utilizar a ferramenta!")
+    print("\n🎬 Sessão finalizada. Obrigado por utilizar a ferramenta!")
 
 
 if __name__ == "__main__":
-    test_lerobot()
+    main()
