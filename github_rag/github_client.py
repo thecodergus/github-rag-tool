@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import base64
 from typing import List, Dict, Optional, Any
+import time
 
 
 class GitHubClient:
@@ -12,7 +13,7 @@ class GitHubClient:
         self.repo_url = repo_url
         self.owner, self.repo = self._parse_repo_url(repo_url)
         self.api_base = f"https://api.github.com/repos/{self.owner}/{self.repo}"
-        self.headers = {}
+        self.headers = {"User-Agent": "request"}
         self._setup_auth()
 
     def _parse_repo_url(self, url: str) -> tuple:
@@ -27,7 +28,7 @@ class GitHubClient:
         """Configura autenticação com GitHub API"""
         github_token = os.getenv("GITHUB_TOKEN")
         if github_token:
-            self.headers["Authorization"] = f"Bearer {github_token}"
+            self.headers["Authorization"] = f"token {github_token}"
 
     def fetch_issues(
         self, state: str = "all", limit: Optional[int] = None
@@ -135,6 +136,7 @@ class GitHubClient:
 
                 comments.extend(page_comments)
                 page += 1
+                time.sleep(0.5)
 
             except Exception as e:
                 print(
