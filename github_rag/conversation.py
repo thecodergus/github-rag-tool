@@ -10,7 +10,7 @@ class ConversationManager:
     def __init__(
         self,
         retriever: Any,
-        model_name: str = "gpt-3.5-turbo",
+        model_name: str = "gpt-4o",
         session_id: Optional[str] = None,
         temperature: float = 0.7,
     ):

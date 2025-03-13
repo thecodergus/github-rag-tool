@@ -16,7 +16,7 @@ def main():
 
     # Criar a ferramenta RAG
     rag_tool = GitHubRagTool(
-        repo_url=repo_url, content_types=["code", "issue"], custom_model="gpt-3.5-turbo"
+        repo_url=repo_url, content_types=["code", "issue"], custom_model="gpt-4o"
     )
 
     # Construir base de conhecimento sem limites
