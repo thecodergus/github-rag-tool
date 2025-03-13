@@ -127,6 +127,28 @@ def test_lerobot():
         print(f"\n🔄 Resposta (gerada em {query_time:.2f}s):")
         print(result.get("resposta", "Resposta não fornecida"))
 
+        # Imprimir as fontes do conhecimento
+        fontes = result.get("fontes", [])
+        if fontes:
+            print("\n📚 Fontes do conhecimento:")
+            for i, fonte in enumerate(fontes, 1):
+                print(
+                    f"  {i}. {fonte.get('tipo', 'Tipo desconhecido')}: {fonte.get('título', 'Sem título')}"
+                )
+                if fonte.get("url"):
+                    print(f"     URL: {fonte.get('url')}")
+                if fonte.get("conteúdo_parcial"):
+                    conteudo = fonte.get("conteúdo_parcial")
+                    # Limitar o tamanho do conteúdo para melhor visualização
+                    if len(conteudo) > 100:
+                        conteudo = conteudo[:100] + "..."
+                    print(f"     Trecho: {conteudo}")
+                print()
+        else:
+            print("\nNenhuma fonte de conhecimento disponível.")
+
+        print(f"\nConfiança: {result.get('confiança', 'N/A')}")
+
         # Exibir fontes
         sources = result.get("sources", [])
         if sources:
