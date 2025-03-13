@@ -848,6 +848,7 @@ class GitHubClient:
                 ".xaml",  # XAML
                 ".resx",  # .NET Resource
                 ".plist",  # Property List
+                ".dockerfile",  # Docker
             ]
 
         self.logger.info(
