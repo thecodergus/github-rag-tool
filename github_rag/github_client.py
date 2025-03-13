@@ -1,521 +1,501 @@
-import requests
-import pandas as pd
 import os
-import base64
-from typing import List, Dict, Optional, Any
 import time
+import json
+import hashlib
+import requests
+from typing import Dict, List, Optional, Tuple, Any, Union
 
 
 class GitHubClient:
-    """Cliente para interagir com a API do GitHub"""
+    """
+    Cliente para interação com a API do GitHub com tratamento avançado de limites de taxa,
+    cache de requisições e backoff exponencial.
+    """
 
-    def __init__(self, repo_url: str):
-        self.repo_url = repo_url
-        self.owner, self.repo = self._parse_repo_url(repo_url)
-        self.api_base = f"https://api.github.com/repos/{self.owner}/{self.repo}"
-        self.headers = {"User-Agent": "request"}
-        self._setup_auth()
+    def __init__(
+        self,
+        token: Optional[str] = None,
+        use_cache: bool = True,
+        cache_dir: str = ".github_cache",
+        cache_ttl: int = 86400,  # 24 horas em segundos
+    ):
+        self.base_url = "https://api.github.com"
+        self.headers = {"Accept": "application/vnd.github.v3+json"}
 
-        # Definir categorias de extensões de arquivo
-        self._code_extensions = self._initialize_code_extensions()
+        # Configuração de autenticação
+        if token:
+            self.headers["Authorization"] = f"token {token}"
 
-    def _parse_repo_url(self, url: str) -> tuple:
-        """Extrai owner e repo da URL do GitHub"""
-        parts = url.strip("/").split("/")
-        if "github.com" in parts:
-            idx = parts.index("github.com")
-            return parts[idx + 1], parts[idx + 2]
-        return parts[-2], parts[-1]
+        # Configuração de cache
+        self.use_cache = use_cache
+        self.cache_dir = cache_dir
+        self.cache_ttl = cache_ttl
 
-    def _setup_auth(self):
-        """Configura autenticação com GitHub API"""
-        github_token = os.getenv("GITHUB_TOKEN")
-        if github_token:
-            self.headers["Authorization"] = f"token {github_token}"
+        if use_cache and not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
 
-    def _initialize_code_extensions(self) -> Dict[str, List[str]]:
-        """Inicializa as extensões de arquivos de código organizadas por categoria"""
-        return {
-            "general": [
-                ".py",
-                ".pyc",
-                ".pyd",
-                ".pyo",
-                ".pyw",
-                ".pyz",
-                ".js",
-                ".mjs",
-                ".cjs",
-                ".ts",
-                ".tsx",
-                ".java",
-                ".class",
-                ".jar",
-                ".c",
-                ".h",
-                ".cpp",
-                ".cc",
-                ".cxx",
-                ".hpp",
-                ".hxx",
-                ".h++",
-                ".cs",
-                ".php",
-                ".phtml",
-                ".php3",
-                ".php4",
-                ".php5",
-                ".php7",
-                ".phps",
-                ".rb",
-                ".rbw",
-                ".go",
-                ".rs",
-                ".rlib",
-                ".swift",
-                ".kt",
-                ".kts",
-                ".scala",
-                ".sc",
-                ".dart",
-            ],
-            "script": [
-                ".sh",
-                ".bash",
-                ".zsh",
-                ".fish",
-                ".ps1",
-                ".psm1",
-                ".psd1",
-                ".bat",
-                ".cmd",
-                ".pl",
-                ".pm",
-                ".lua",
-                ".r",
-                ".rmd",
-                ".groovy",
-                ".tcl",
-            ],
-            "functional": [
-                ".hs",
-                ".lhs",
-                ".erl",
-                ".hrl",
-                ".ex",
-                ".exs",
-                ".clj",
-                ".cljs",
-                ".cljc",
-                ".lisp",
-                ".cl",
-                ".l",
-                ".scm",
-                ".ss",
-                ".ml",
-                ".mli",
-                ".fs",
-                ".fsi",
-                ".fsx",
-            ],
-            "domain_specific": [
-                ".sql",
-                ".m",
-                ".f",
-                ".f90",
-                ".f95",
-                ".f03",
-                ".f08",
-                ".d",
-                ".jl",
-                ".v",
-                ".sv",
-                ".vhd",
-                ".vhdl",
-                ".asm",
-                ".s",
-                ".cob",
-                ".cbl",
-                ".for",
-                ".pas",
-                ".ada",
-                ".adb",
-                ".ads",
-                ".vb",
-            ],
-            "markup": [
-                ".html",
-                ".htm",
-                ".xhtml",
-                ".xml",
-                ".xsl",
-                ".xslt",
-                ".css",
-                ".scss",
-                ".sass",
-                ".less",
-                ".json",
-                ".jsonl",
-                ".jsonc",
-                ".yaml",
-                ".yml",
-                ".md",
-                ".markdown",
-                ".tex",
-                ".sty",
-                ".cls",
-                ".rst",
-                ".toml",
-                ".haml",
-                ".jade",
-                ".pug",
-            ],
-            "template": [
-                ".tmpl",
-                ".template",
-                ".tpl",
-                ".j2",
-                ".jinja",
-                ".jinja2",
-                ".vm",
-                ".velocity",
-                ".hbs",
-                ".handlebars",
-                ".mustache",
-                ".erb",
-                ".jsp",
-                ".aspx",
-                ".ascx",
-                ".cshtml",
-                ".razor",
-            ],
-            "config": [
-                ".ini",
-                ".conf",
-                ".config",
-                ".make",
-                ".mk",
-                ".mak",
-                ".cmake",
-                ".gradle",
-                ".sbt",
-                ".ant",
-                ".prop",
-                ".properties",
-                ".dockerfile",
-                ".containerfile",
-                ".dockerignore",
-                ".tf",
-                ".tfvars",
-                ".proto",
-            ],
-            "web": [
-                ".jsx",
-                ".vue",
-                ".svelte",
-                ".astro",
-                ".elm",
-                ".coffee",
-                ".litcoffee",
-                ".as",
-                ".wsf",
-                ".ejs",
-                ".wasm",
-                ".wat",
-                ".htaccess",
-                ".xaml",
-                ".tsx",
-            ],
-            "other": [
-                ".graphql",
-                ".gql",
-                ".solidity",
-                ".sol",
-                ".ino",
-                ".nix",
-                ".bf",
-                ".nim",
-                ".re",
-                ".rei",
-                ".zig",
-                ".cr",
-                ".v",
-                ".pde",
-                ".inc",
-                ".ahk",
-                ".applescript",
-                ".purs",
-                ".haxe",
-                ".hx",
-            ],
-        }
+        # Estatísticas de uso da API
+        self.requests_made = 0
+        self.cache_hits = 0
+        self.rate_limit_hits = 0
 
-    def _make_request(
-        self, url: str, params: Dict = None, error_message: str = "Erro na requisição"
-    ) -> Optional[Dict]:
-        """
-        Faz uma requisição à API do GitHub com tratamento padronizado de erros
+    def _get_cache_key(self, url: str, params: Dict = None) -> str:
+        """Gera uma chave de cache única para uma requisição."""
+        params_str = json.dumps(params or {}, sort_keys=True)
+        key = f"{url}_{params_str}"
+        return hashlib.md5(key.encode()).hexdigest()
 
-        Args:
-            url: URL para a requisição
-            params: Parâmetros da requisição
-            error_message: Mensagem de erro personalizada
-
-        Returns:
-            Resposta da API em formato JSON ou None em caso de erro
-        """
-        try:
-            response = requests.get(url, headers=self.headers, params=params)
-            if response.status_code != 200:
-                print(f"⚠️ {error_message}: {response.status_code}")
-                return None
-            return response.json()
-        except Exception as e:
-            print(f"❌ {error_message}: {str(e)}")
+    def _get_from_cache(self, cache_key: str) -> Optional[Dict]:
+        """Recupera dados do cache se disponíveis e válidos."""
+        if not self.use_cache:
             return None
 
-    def _paginated_request(
-        self,
-        url: str,
-        params: Dict = None,
-        limit: Optional[int] = None,
-        item_name: str = "items",
-        sleep_time: float = 0.5,
-    ) -> List[Dict]:
-        """
-        Faz requisições paginadas à API do GitHub
+        cache_file = os.path.join(self.cache_dir, f"{cache_key}.json")
 
-        Args:
-            url: URL base para a requisição
-            params: Parâmetros adicionais da requisição
-            limit: Número máximo de itens a serem buscados
-            item_name: Nome dos itens para mensagens de log
-            sleep_time: Tempo de espera entre requisições
+        if os.path.exists(cache_file):
+            # Verificar idade do cache
+            if time.time() - os.path.getmtime(cache_file) < self.cache_ttl:
+                try:
+                    with open(cache_file, "r") as f:
+                        self.cache_hits += 1
+                        return json.load(f)
+                except Exception as e:
+                    print(f"⚠️ Erro ao ler cache: {str(e)}")
 
-        Returns:
-            Lista de itens das respostas
-        """
-        items = []
-        page = 1
-        params = params or {}
+        return None
 
-        while limit is None or len(items) < limit:
-            params["page"] = page
-            params["per_page"] = 100
+    def _save_to_cache(self, cache_key: str, data: Dict) -> None:
+        """Salva dados no cache."""
+        if not self.use_cache:
+            return
 
-            data = self._make_request(
-                url, params=params, error_message=f"Erro ao buscar {item_name}"
-            )
+        cache_file = os.path.join(self.cache_dir, f"{cache_key}.json")
 
-            if not data:
-                break
-
-            if not data:  # Lista vazia
-                break
-
-            items.extend(data)
-            page += 1
-
-            print(f"📊 Encontrados {len(items)} {item_name} até agora...", end="\r")
-            time.sleep(sleep_time)
-
-        if limit is not None:
-            items = items[:limit]
-
-        return items
-
-    def get_file_content(self, file_info: Dict[str, str]) -> str:
-        """
-        Obtém o conteúdo de um arquivo
-
-        Args:
-            file_info: Dicionário com informações do arquivo, incluindo 'download_url'
-
-        Returns:
-            Conteúdo do arquivo como string
-        """
         try:
-            download_url = file_info["download_url"]
-            response = requests.get(download_url, headers=self.headers)
-            if response.status_code == 200:
-                return response.text
-            print(
-                f"⚠️ Falha ao baixar arquivo: {download_url} (Status: {response.status_code})"
-            )
+            with open(cache_file, "w") as f:
+                json.dump(data, f)
         except Exception as e:
-            print(f"⚠️ Erro ao baixar arquivo: {str(e)}")
-        return ""
+            print(f"⚠️ Erro ao salvar cache: {str(e)}")
 
-    def _is_code_file(self, filename: str) -> bool:
+    def check_rate_limit(self) -> Tuple[Optional[int], Optional[int]]:
         """
-        Verifica se o arquivo é um arquivo de código
-
-        Args:
-            filename: Nome do arquivo
+        Verifica os limites de taxa atuais da API.
 
         Returns:
-            True se for um arquivo de código, False caso contrário
+            Tuple[int, int]: (requisições restantes, timestamp para reset)
         """
-        # Combina todas as extensões em uma única lista
-        all_extensions = []
-        for category_extensions in self._code_extensions.values():
-            all_extensions.extend(category_extensions)
+        url = f"{self.base_url}/rate_limit"
 
-        return any(filename.endswith(ext) for ext in all_extensions)
+        try:
+            response = requests.get(url, headers=self.headers)
 
-    def fetch_issues(
-        self, state: str = "all", limit: Optional[int] = None
-    ) -> pd.DataFrame:
-        """
-        Busca issues do repositório e seus comentários
+            if response.status_code == 200:
+                data = response.json()
 
-        Args:
-            state: Estado dos issues ('open', 'closed', 'all')
-            limit: Número máximo de issues a serem buscados (None para todos)
+                # Obter limites de taxa core e search
+                core_rate = data["resources"]["core"]
+                search_rate = data["resources"]["search"]
 
-        Returns:
-            DataFrame com issues e seus comentários
-        """
-        print("🔍 Buscando issues...")
-
-        url = f"{self.api_base}/issues"
-        params = {"state": state}
-
-        issues = self._paginated_request(
-            url, params=params, limit=limit, item_name="issues"
-        )
-
-        print(f"\n✅ Total de {len(issues)} issues encontrados")
-
-        # Converter para DataFrame e processar
-        if not issues:
-            return pd.DataFrame()
-
-        df = pd.DataFrame(issues)
-
-        # Selecionar colunas relevantes
-        if set(["number", "title", "body", "state", "created_at", "html_url"]).issubset(
-            df.columns
-        ):
-            df = df[["number", "title", "body", "state", "created_at", "html_url"]]
-            df["created_at"] = pd.to_datetime(df["created_at"])
-
-            # Buscar comentários para cada issue
-            print("🔍 Buscando comentários para cada issue...")
-            total = len(df)
-
-            # Criar coluna de comentários
-            df["comments_data"] = None
-
-            for idx, row in df.iterrows():
-                issue_number = row["number"]
+                # Informar limites de taxa
+                print("\n--- Limites de Taxa da API GitHub ---")
                 print(
-                    f"💬 Buscando comentários do issue #{issue_number} ({idx+1}/{total})",
-                    end="\r",
+                    f"📊 Core API: {core_rate['remaining']}/{core_rate['limit']} restantes"
+                )
+                print(
+                    f"🔎 Search API: {search_rate['remaining']}/{search_rate['limit']} restantes"
                 )
 
-                comments = self.fetch_issue_comments(issue_number)
-                df.at[idx, "comments_data"] = comments
+                # Calcular tempo até reset
+                core_reset = time.strftime(
+                    "%H:%M:%S", time.localtime(core_rate["reset"])
+                )
+                search_reset = time.strftime(
+                    "%H:%M:%S", time.localtime(search_rate["reset"])
+                )
 
-            print(f"\n✅ Comentários buscados para {total} issues")
+                print(f"⏱️ Core API reset às: {core_reset}")
+                print(f"⏱️ Search API reset às: {search_reset}")
 
-        return df
+                # Avisar se estiver próximo do limite
+                if core_rate["remaining"] < (core_rate["limit"] * 0.1):
+                    print(f"⚠️ ATENÇÃO: Menos de 10% das requisições Core disponíveis!")
 
-    def fetch_issue_comments(self, issue_number: int) -> List[Dict[str, Any]]:
-        """
-        Busca todos os comentários de um issue específico
-
-        Args:
-            issue_number: Número do issue
-
-        Returns:
-            Lista de comentários com seus metadados
-        """
-        url = f"{self.api_base}/issues/{issue_number}/comments"
-
-        comments = self._paginated_request(
-            url, item_name=f"comentários do issue #{issue_number}", sleep_time=0.5
-        )
-
-        # Processar e formatar comentários
-        formatted_comments = []
-        for comment in comments:
-            formatted_comments.append(
-                {
-                    "id": comment["id"],
-                    "user": comment["user"]["login"],
-                    "body": comment["body"],
-                    "created_at": comment["created_at"],
-                    "html_url": comment["html_url"],
-                }
-            )
-
-        return formatted_comments
-
-    def fetch_code_files(
-        self, path: str = "", max_files: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
-        """
-        Busca arquivos de código no repositório recursivamente.
-
-        Args:
-            path: Caminho dentro do repositório para buscar (vazio = raiz)
-            max_files: Número máximo de arquivos a serem buscados (None para sem limite)
-
-        Returns:
-            Lista de dicionários contendo informações e conteúdo dos arquivos
-        """
-        url = f"{self.api_base}/contents/{path}"
-
-        try:
-            print(f"🔍 Explorando diretório: {path or 'raiz'}")
-
-            contents = self._make_request(url, error_message=f"Falha ao acessar {path}")
-
-            if not contents:
-                return []
-
-            files = []
-            dirs = []
-
-            total_items = len(contents)
-            processed = 0
-
-            for item in contents:
-                processed += 1
-                if path:  # Só mostra progresso em subdiretórios
-                    print(
-                        f"📂 Processando em {path}: {processed}/{total_items}", end="\r"
-                    )
-
-                if item["type"] == "file" and self._is_code_file(item["name"]):
-                    print(f"📄 Baixando: {item['path']}")
-                    content = self.get_file_content(item)
-                    files.append(
-                        {
-                            "name": item["path"],
-                            "path": item["path"],
-                            "download_url": item["download_url"],
-                            "url": item["html_url"],
-                            "sha": item["sha"],
-                            "content": content,
-                        }
-                    )
-                elif item["type"] == "dir":
-                    dirs.append(item["path"])
-
-                time.sleep(0.5)
-
-            if path:
-                print()  # Nova linha após terminar o processamento do diretório
-
-            # Recursivamente buscar em subdiretórios sem limitação
-            for dir_path in dirs:
-                subdir_files = self.fetch_code_files(dir_path, max_files=None)
-                files.extend(subdir_files)
-
-            return files
+                return core_rate["remaining"], core_rate["reset"]
+            else:
+                print(f"❌ Erro ao verificar limites de taxa: {response.status_code}")
+                return None, None
 
         except Exception as e:
-            print(f"❌ Erro ao processar diretório {path}: {str(e)}")
-            return []
+            print(f"❌ Exceção ao verificar limites de taxa: {str(e)}")
+            return None, None
+
+    def _make_request(
+        self,
+        url: str,
+        params: Optional[Dict] = None,
+        method: str = "GET",
+        data: Optional[Dict] = None,
+        error_message: str = "Erro na requisição",
+        max_retries: int = 5,
+        use_cache: Optional[bool] = None,
+    ) -> Optional[Dict]:
+        """
+        Realiza uma requisição HTTP com tratamento avançado de erros e limites de taxa.
+
+        Args:
+            url: URL completa da requisição
+            params: Parâmetros de query string
+            method: Método HTTP (GET, POST, etc)
+            data: Dados para enviar (para POST, PUT, etc)
+            error_message: Mensagem personalizada para erros
+            max_retries: Número máximo de tentativas
+            use_cache: Sobrescreve configuração global de cache
+
+        Returns:
+            Dict: Resposta da API em formato JSON ou None em caso de erro
+        """
+        use_cache = self.use_cache if use_cache is None else use_cache
+
+        # Gerar chave de cache e verificar se temos dados em cache
+        if method == "GET" and use_cache:
+            cache_key = self._get_cache_key(url, params)
+            cached_data = self._get_from_cache(cache_key)
+
+            if cached_data:
+                print(f"🔄 Usando dados em cache para: {url}")
+                return cached_data
+
+        # Fazer a requisição com retentativas
+        retries = 0
+        self.requests_made += 1
+
+        while retries < max_retries:
+            try:
+                if method == "GET":
+                    response = requests.get(url, headers=self.headers, params=params)
+                elif method == "POST":
+                    response = requests.post(
+                        url, headers=self.headers, params=params, json=data
+                    )
+                elif method == "PUT":
+                    response = requests.put(
+                        url, headers=self.headers, params=params, json=data
+                    )
+                elif method == "DELETE":
+                    response = requests.delete(url, headers=self.headers, params=params)
+                else:
+                    raise ValueError(f"Método HTTP não suportado: {method}")
+
+                # Extrair informações de limite de taxa dos cabeçalhos
+                remaining = int(response.headers.get("X-RateLimit-Remaining", 0))
+                limit = int(response.headers.get("X-RateLimit-Limit", 0))
+                reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
+
+                # Se for bem-sucedido, retornar dados e cachear
+                if response.status_code == 200 or response.status_code == 201:
+                    result = response.json()
+
+                    # Salvar em cache se for GET
+                    if method == "GET" and use_cache:
+                        self._save_to_cache(cache_key, result)
+
+                    # Avisar se estiver com poucas requisições restantes
+                    if remaining < (limit * 0.1) and limit > 0:
+                        reset_datetime = time.strftime(
+                            "%H:%M:%S", time.localtime(reset_time)
+                        )
+                        print(
+                            f"⚠️ Apenas {remaining}/{limit} requisições restantes até {reset_datetime}"
+                        )
+
+                    return result
+
+                # Tratar limites de taxa (403/429)
+                elif response.status_code in (403, 429):
+                    self.rate_limit_hits += 1
+
+                    # Verificar se é realmente um problema de limite de taxa
+                    if remaining == 0 and reset_time > 0:
+                        current_time = time.time()
+                        sleep_time = (
+                            max(reset_time - current_time, 0) + 2
+                        )  # Margem de segurança
+
+                        print(
+                            f"⏳ Limite de taxa atingido. Aguardando {sleep_time:.1f} segundos até reset..."
+                        )
+                        time.sleep(sleep_time)
+                        retries += 1
+                        continue
+
+                    # Se for 429, usar o header Retry-After se disponível
+                    if (
+                        response.status_code == 429
+                        and "Retry-After" in response.headers
+                    ):
+                        retry_after = int(response.headers["Retry-After"])
+                        print(
+                            f"⏳ Taxa excedida. Aguardando {retry_after} segundos conforme solicitado."
+                        )
+                        time.sleep(retry_after)
+                        retries += 1
+                        continue
+
+                    # Backoff exponencial para outras tentativas
+                    wait_time = (2**retries) + (
+                        time.time() % 1
+                    )  # Adiciona um pouco de aleatoriedade
+                    print(
+                        f"⏳ {error_message} ({response.status_code}). Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s"
+                    )
+                    time.sleep(wait_time)
+                    retries += 1
+
+                # Outros erros
+                else:
+                    error_data = response.json() if response.text else {}
+                    error_msg = error_data.get("message", "Sem detalhes do erro")
+                    print(f"❌ {error_message}: {response.status_code} - {error_msg}")
+
+                    # Alguns erros não devem ser retentados
+                    if response.status_code in (401, 404, 422):
+                        return None
+
+                    # Para outros erros, tentar novamente com backoff
+                    wait_time = (2**retries) + (time.time() % 1)
+                    print(f"⏳ Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s")
+                    time.sleep(wait_time)
+                    retries += 1
+
+            except requests.exceptions.RequestException as e:
+                print(f"❌ Erro de conexão: {str(e)}")
+                wait_time = (2**retries) + (time.time() % 1)
+                print(f"⏳ Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s")
+                time.sleep(wait_time)
+                retries += 1
+
+        # Se chegou aqui, todas as tentativas falharam
+        print(f"❌ Falha após {max_retries} tentativas para: {url}")
+        return None
+
+    def get_user(self, username: str) -> Optional[Dict]:
+        """Obtém informações de um usuário."""
+        url = f"{self.base_url}/users/{username}"
+        return self._make_request(
+            url, error_message=f"Erro ao obter usuário {username}"
+        )
+
+    def get_repository(self, owner: str, repo: str) -> Optional[Dict]:
+        """Obtém informações de um repositório."""
+        url = f"{self.base_url}/repos/{owner}/{repo}"
+        return self._make_request(
+            url, error_message=f"Erro ao obter repositório {owner}/{repo}"
+        )
+
+    def get_issues(
+        self, owner: str, repo: str, state: str = "all", per_page: int = 100
+    ) -> List[Dict]:
+        """
+        Obtém todas as issues de um repositório, lidando com paginação.
+
+        Args:
+            owner: Dono do repositório
+            repo: Nome do repositório
+            state: Estado das issues (open, closed, all)
+            per_page: Número de itens por página
+
+        Returns:
+            List[Dict]: Lista com todas as issues
+        """
+        url = f"{self.base_url}/repos/{owner}/{repo}/issues"
+        params = {"state": state, "per_page": per_page, "page": 1}
+
+        all_issues = []
+
+        while True:
+            issues = self._make_request(
+                url,
+                params=params,
+                error_message=f"Erro ao obter issues da página {params['page']}",
+            )
+
+            if not issues or len(issues) == 0:
+                break
+
+            all_issues.extend(issues)
+
+            # Verificar se tem mais páginas
+            if len(issues) < per_page:
+                break
+
+            params["page"] += 1
+
+            # Pequena pausa entre requisições para evitar sobrecarga
+            time.sleep(0.25)
+
+        return all_issues
+
+    def get_pull_requests(
+        self, owner: str, repo: str, state: str = "all", per_page: int = 100
+    ) -> List[Dict]:
+        """
+        Obtém todos os pull requests de um repositório, lidando com paginação.
+
+        Args:
+            owner: Dono do repositório
+            repo: Nome do repositório
+            state: Estado dos PRs (open, closed, all)
+            per_page: Número de itens por página
+
+        Returns:
+            List[Dict]: Lista com todos os pull requests
+        """
+        url = f"{self.base_url}/repos/{owner}/{repo}/pulls"
+        params = {"state": state, "per_page": per_page, "page": 1}
+
+        all_prs = []
+
+        while True:
+            prs = self._make_request(
+                url,
+                params=params,
+                error_message=f"Erro ao obter PRs da página {params['page']}",
+            )
+
+            if not prs or len(prs) == 0:
+                break
+
+            all_prs.extend(prs)
+
+            # Verificar se tem mais páginas
+            if len(prs) < per_page:
+                break
+
+            params["page"] += 1
+
+            # Pequena pausa entre requisições para evitar sobrecarga
+            time.sleep(0.25)
+
+        return all_prs
+
+    def get_commits(
+        self, owner: str, repo: str, per_page: int = 100, since: Optional[str] = None
+    ) -> List[Dict]:
+        """
+        Obtém todos os commits de um repositório, lidando com paginação.
+
+        Args:
+            owner: Dono do repositório
+            repo: Nome do repositório
+            per_page: Número de itens por página
+            since: Data ISO 8601 para filtrar commits (YYYY-MM-DDTHH:MM:SSZ)
+
+        Returns:
+            List[Dict]: Lista com todos os commits
+        """
+        url = f"{self.base_url}/repos/{owner}/{repo}/commits"
+        params = {"per_page": per_page, "page": 1}
+
+        if since:
+            params["since"] = since
+
+        all_commits = []
+
+        while True:
+            commits = self._make_request(
+                url,
+                params=params,
+                error_message=f"Erro ao obter commits da página {params['page']}",
+            )
+
+            if not commits or len(commits) == 0:
+                break
+
+            all_commits.extend(commits)
+
+            # Verificar se tem mais páginas
+            if len(commits) < per_page:
+                break
+
+            params["page"] += 1
+
+            # Pequena pausa entre requisições para evitar sobrecarga
+            time.sleep(0.25)
+
+        return all_commits
+
+    def search_repositories(
+        self, query: str, sort: str = "stars", order: str = "desc", per_page: int = 100
+    ) -> List[Dict]:
+        """
+        Pesquisa repositórios no GitHub.
+
+        Args:
+            query: Query de pesquisa
+            sort: Campo para ordenação (stars, forks, updated)
+            order: Direção da ordenação (asc, desc)
+            per_page: Itens por página
+
+        Returns:
+            List[Dict]: Lista de repositórios encontrados
+        """
+        url = f"{self.base_url}/search/repositories"
+        params = {
+            "q": query,
+            "sort": sort,
+            "order": order,
+            "per_page": per_page,
+            "page": 1,
+        }
+
+        all_repos = []
+        total_count = 0
+
+        while True:
+            result = self._make_request(
+                url,
+                params=params,
+                error_message=f"Erro na pesquisa de repositórios página {params['page']}",
+            )
+
+            if not result or "items" not in result:
+                break
+
+            if params["page"] == 1:
+                total_count = result.get("total_count", 0)
+                print(f"📊 Total de resultados encontrados: {total_count}")
+
+            items = result["items"]
+            all_repos.extend(items)
+
+            # Verificar se tem mais páginas
+            if len(items) < per_page or len(all_repos) >= total_count:
+                break
+
+            params["page"] += 1
+
+            # Pequena pausa entre requisições para evitar sobrecarga
+            time.sleep(0.5)  # Search API tem limites mais restritos
+
+        return all_repos
+
+    def get_statistics(self) -> Dict[str, int]:
+        """Retorna estatísticas de uso do cliente."""
+        return {
+            "requests_made": self.requests_made,
+            "cache_hits": self.cache_hits,
+            "rate_limit_hits": self.rate_limit_hits,
+        }
+
+    def clear_cache(self) -> None:
+        """Limpa todo o cache de requisições."""
+        if not self.use_cache:
+            return
+
+        try:
+            for filename in os.listdir(self.cache_dir):
+                if filename.endswith(".json"):
+                    os.remove(os.path.join(self.cache_dir, filename))
+            print(f"✅ Cache limpo com sucesso.")
+        except Exception as e:
+            print(f"❌ Erro ao limpar cache: {str(e)}")
