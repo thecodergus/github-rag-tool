@@ -240,13 +240,32 @@ class VectorStore:
             return False
 
     def get_retriever(
-        self, search_kwargs: Optional[Dict[str, Any]] = None
+        self,
+        search_kwargs: Optional[Dict[str, Any]] = None,
+        search_type: str = "mmr",
+        filter: Optional[Dict[str, Any]] = None,
     ) -> BaseRetriever:
         """
         Obtém o retriever da base de vetores com configurações personalizadas.
 
         Args:
             search_kwargs: Argumentos de pesquisa para o retriever
+                - Para MMR:
+                    - k: Número de documentos a retornar (padrão: 7)
+                    - fetch_k: Número de documentos a recuperar inicialmente (padrão: 20)
+                    - lambda_mult: Balanço entre relevância e diversidade (0-1, padrão: 0.7)
+                    Valores próximos a 1 priorizam relevância, próximos a 0 priorizam diversidade
+                - Para similarity:
+                    - k: Número de documentos a retornar
+                    - score_threshold: Limiar mínimo de similaridade (0-1)
+
+            search_type: Tipo de busca a ser realizada
+                - "mmr": Maximum Marginal Relevance (equilibra relevância e diversidade)
+                - "similarity": Busca por similaridade simples (mais rápida)
+                - "similarity_score_threshold": Busca com limiar de pontuação
+
+            filter: Filtro de metadados para restringir a busca
+                Exemplo: {"source": "github", "type": "issue"}
 
         Returns:
             Um objeto retriever configurado
@@ -259,12 +278,31 @@ class VectorStore:
                 "Vector database não foi inicializado. Use create_vector_db ou load_vector_db primeiro."
             )
 
-        default_search_kwargs = {"k": 5, "fetch_k": 20, "score_threshold": 0.5}
+        # Configurações padrão otimizadas para cada tipo de busca
+        if search_type == "mmr":
+            default_search_kwargs = {
+                "k": 7,
+                "fetch_k": 30,  # Busca um conjunto maior para aplicar diversificação
+                "lambda_mult": 0.7,  # Equilibrio entre relevância (1.0) e diversidade (0.0)
+            }
+        elif search_type == "similarity_score_threshold":
+            default_search_kwargs = {
+                "k": 10,
+                "score_threshold": 0.75,  # Limiar mínimo de similaridade
+            }
+        else:  # similarity padrão
+            default_search_kwargs = {"k": 7}
+
+        # Atualiza com argumentos fornecidos pelo usuário
         if search_kwargs:
             default_search_kwargs.update(search_kwargs)
 
+        # Adiciona filtro se especificado
+        if filter:
+            default_search_kwargs["filter"] = filter
+
         return self.vector_db.as_retriever(
-            search_type="mmr",  # Usa Maximum Marginal Relevance por padrão
+            search_type=search_type,
             search_kwargs=default_search_kwargs,
         )
 
