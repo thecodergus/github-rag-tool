@@ -35,7 +35,7 @@ O GitHub RAG Tool é um projeto dedicado à criação de agentes inteligentes ca
 3. Configure o arquivo `.env` com suas credenciais:
    ```
    OPENAI_API_KEY=sua_chave_openai
-   GITHUB_TOKEN=seu_token_github_opcional
+   GITHUB_API_TOKEN=seu_token_github_opcional
    OPENAI_EMBBENDING_MODEL=text-embedding-ada-002
    ```
 

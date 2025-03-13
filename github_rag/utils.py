@@ -36,7 +36,7 @@ def setup_environment(
     # Valores padrão
     required_keys = required_keys or [
         "OPENAI_API_KEY",
-        "GITHUB_TOKEN",
+        "GITHUB_API_TOKEN",
         "MONGODB_URI",
         "OPENAI_MODEL",
         "OPENAI_EMBBENDING_MODEL",

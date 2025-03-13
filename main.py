@@ -55,7 +55,7 @@ def main():
             "pull_request",
         ],  # Incluindo PRs para mais contexto
         custom_model=os.environ.get("OPENAI_EMBBENDING_MODEL"),
-        temperature=0.2,  # Temperatura mais baixa para respostas mais consistentes
+        temperature=0.1,  # Temperatura mais baixa para respostas mais consistentes
     )
 
     # Aplicar configurações
