@@ -639,52 +639,46 @@ class GitHubClient:
 
     def _is_code_file(self, filename: str) -> bool:
         """
-        Verifica se um arquivo é considerado um arquivo de código.
+        Verifica se um arquivo deve ser considerado para análise.
+        Aceita qualquer arquivo de texto que não seja log.
+        Ignora arquivos binários, imagens, vídeos e outras mídias.
 
         Args:
             filename: Nome do arquivo a ser verificado
 
         Returns:
-            True se for um arquivo de código, False caso contrário
+            True se o arquivo deve ser incluído, False caso contrário
         """
-        # Extensões comuns de arquivos de código
-        code_extensions = [
-            ".py",
-            ".js",
-            ".java",
-            ".c",
-            ".cpp",
-            ".h",
-            ".hpp",
-            ".cs",
-            ".php",
-            ".rb",
-            ".go",
-            ".swift",
-            ".kt",
-            ".ts",
-            ".html",
-            ".css",
-            ".scss",
-            ".jsx",
-            ".tsx",
-            ".vue",
-            ".rs",
-            ".sh",
-            ".bash",
-            ".sql",
-            ".json",
-        ]
 
-        # Ignora arquivos binários e outros não relevantes
+        # Extensões de arquivos a serem ignorados (binários, mídia, etc.)
         ignored_extensions = [
+            # Imagens
             ".png",
             ".jpg",
             ".jpeg",
             ".gif",
             ".bmp",
+            ".tiff",
+            ".webp",
             ".svg",
             ".ico",
+            # Vídeos
+            ".mp4",
+            ".avi",
+            ".mov",
+            ".wmv",
+            ".flv",
+            ".mkv",
+            ".webm",
+            ".m4v",
+            # Áudio
+            ".mp3",
+            ".wav",
+            ".ogg",
+            ".flac",
+            ".aac",
+            ".m4a",
+            # Documentos binários
             ".pdf",
             ".doc",
             ".docx",
@@ -692,28 +686,62 @@ class GitHubClient:
             ".pptx",
             ".xls",
             ".xlsx",
+            ".odt",
+            # Arquivos compactados
             ".zip",
             ".tar",
             ".gz",
             ".rar",
+            ".7z",
+            ".bz2",
+            ".xz",
+            # Executáveis e binários
             ".exe",
             ".dll",
             ".so",
             ".dylib",
+            ".class",
+            ".pyc",
+            ".pyd",
+            ".o",
+            ".obj",
+            # Outros binários
+            ".bin",
+            ".dat",
+            ".db",
+            ".sqlite",
+            ".sqlite3",
+            ".mdb",
+            ".pkl",
+            ".parquet",
         ]
 
-        # Verifica se o arquivo tem uma extensão de código
-        has_code_extension = any(
-            filename.lower().endswith(ext) for ext in code_extensions
-        )
+        # Extensões de arquivos de log
+        log_extensions = [".log", ".logs", ".logfile"]
 
-        # Verifica se o arquivo tem uma extensão ignorada
-        has_ignored_extension = any(
-            filename.lower().endswith(ext) for ext in ignored_extensions
-        )
+        filename_lower = filename.lower()
 
-        # Retorna True se tiver extensão de código e não for ignorado
-        return has_code_extension and not has_ignored_extension
+        # Verificações em ordem de prioridade
+
+        # 1. Se for um arquivo de log, ignora
+        if (
+            any(filename_lower.endswith(ext) for ext in log_extensions)
+            or "log" in filename_lower
+        ):
+            return False
+
+        # 2. Se tiver uma extensão ignorada, ignora
+        if any(filename_lower.endswith(ext) for ext in ignored_extensions):
+            return False
+
+        # 3. Arquivos sem extensão ou com extensões desconhecidas
+        # Ignora arquivos sem extensão pois podem ser binários
+        if "." not in filename_lower:
+            return False
+
+        # 4. Para outros casos, assumimos que é um arquivo de texto
+        # que pode ser útil para análise
+        return True
 
     def _get_rate_limit_from_headers(self) -> Tuple[Optional[int], Optional[int]]:
         """
