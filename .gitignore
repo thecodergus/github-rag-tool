@@ -2,3 +2,4 @@
 db/
 github_rag_db/
 chroma_db/
+.github_cache/
