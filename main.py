@@ -154,7 +154,7 @@ class GitHubRagTool:
             verbose=True,
         )
 
-    def load_github_data(self, limit_issues=100, max_files=60):
+    def load_github_data(self, limit_issues=None, max_files=None):
         """Carrega dados do GitHub e cria a base de conhecimento"""
         try:
             print("🔍 Buscando issues...")
@@ -282,7 +282,7 @@ class GitHubRagTool:
                 return parts[idx + 1], parts[idx + 2]
         raise ValueError(f"URL de repositório inválida: {url}")
 
-    def fetch_issues(self, state="all", limit=100):
+    def fetch_issues(self, state="all", limit=None):
         """
         Busca os issues do repositório usando a API do GitHub
 
@@ -300,7 +300,7 @@ class GitHubRagTool:
         issues = []
         page = 1
 
-        while len(issues) < limit:
+        while limit is None or len(issues) < limit:
             params["page"] = page
             response = requests.get(url, headers=headers, params=params)
 
@@ -316,7 +316,8 @@ class GitHubRagTool:
             page += 1
 
         # Limitar ao número desejado
-        issues = issues[:limit]
+        if limit is not None:
+            issues = issues[:limit]
 
         # Converter para DataFrame
         df = pd.DataFrame(
