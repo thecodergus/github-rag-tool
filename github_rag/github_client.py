@@ -4,27 +4,45 @@ import json
 import hashlib
 import requests
 from typing import Dict, List, Optional, Tuple, Any, Union
+from datetime import datetime
+import logging
+
+from github_rag.utils import parse_github_repo_url
 
 
 class GitHubClient:
     """
     Cliente para interação com a API do GitHub com tratamento avançado de limites de taxa,
     cache de requisições e backoff exponencial.
+
+    Otimizado para repositórios de robótica como o LeRobot (https://github.com/huggingface/lerobot),
+    fornecendo métodos específicos para análise de issues, PRs e código-fonte.
     """
 
     def __init__(
         self,
+        repo_url: str,
         token: Optional[str] = None,
         use_cache: bool = True,
         cache_dir: str = ".github_cache",
         cache_ttl: int = 86400,  # 24 horas em segundos
+        log_level: int = logging.INFO,
     ):
+        self.repo_url = repo_url
+        self.owner, self.repo = parse_github_repo_url(repo_url)
         self.base_url = "https://api.github.com"
-        self.headers = {"Accept": "application/vnd.github.v3+json"}
+        self.headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "GitHubRAG-Client/1.0",
+        }
 
         # Configuração de autenticação
         if token:
             self.headers["Authorization"] = f"token {token}"
+        else:
+            print(
+                "⚠️ Operando sem token de autenticação. Limites de taxa serão mais restritivos."
+            )
 
         # Configuração de cache
         self.use_cache = use_cache
@@ -34,10 +52,32 @@ class GitHubClient:
         if use_cache and not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
 
+        # Configuração de logging
+        self.logger = self._setup_logger(log_level)
+
         # Estatísticas de uso da API
         self.requests_made = 0
         self.cache_hits = 0
         self.rate_limit_hits = 0
+        self.last_response = None
+
+        # Informações do repositório
+        self.repo_info = self._fetch_repo_info()
+
+    def _setup_logger(self, log_level: int) -> logging.Logger:
+        """Configura o logger para a classe."""
+        logger = logging.getLogger(f"GitHubClient-{self.owner}-{self.repo}")
+        logger.setLevel(log_level)
+
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+
+        return logger
 
     def _get_cache_key(self, url: str, params: Dict = None) -> str:
         """Gera uma chave de cache única para uma requisição."""
@@ -54,13 +94,19 @@ class GitHubClient:
 
         if os.path.exists(cache_file):
             # Verificar idade do cache
-            if time.time() - os.path.getmtime(cache_file) < self.cache_ttl:
+            cache_age = time.time() - os.path.getmtime(cache_file)
+            if cache_age < self.cache_ttl:
                 try:
-                    with open(cache_file, "r") as f:
+                    with open(cache_file, "r", encoding="utf-8") as f:
                         self.cache_hits += 1
+                        self.logger.debug(f"Cache hit para {cache_key}")
                         return json.load(f)
                 except Exception as e:
-                    print(f"⚠️ Erro ao ler cache: {str(e)}")
+                    self.logger.warning(f"Erro ao ler cache: {str(e)}")
+            else:
+                self.logger.debug(
+                    f"Cache expirado para {cache_key} (idade: {cache_age:.1f}s)"
+                )
 
         return None
 
@@ -72,10 +118,11 @@ class GitHubClient:
         cache_file = os.path.join(self.cache_dir, f"{cache_key}.json")
 
         try:
-            with open(cache_file, "w") as f:
-                json.dump(data, f)
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False)
+                self.logger.debug(f"Dados salvos em cache: {cache_key}")
         except Exception as e:
-            print(f"⚠️ Erro ao salvar cache: {str(e)}")
+            self.logger.warning(f"Erro ao salvar cache: {str(e)}")
 
     def check_rate_limit(self) -> Tuple[Optional[int], Optional[int]]:
         """
@@ -88,6 +135,7 @@ class GitHubClient:
 
         try:
             response = requests.get(url, headers=self.headers)
+            self.last_response = response
 
             if response.status_code == 200:
                 data = response.json()
@@ -96,37 +144,40 @@ class GitHubClient:
                 core_rate = data["resources"]["core"]
                 search_rate = data["resources"]["search"]
 
+                # Formatar horário de reset para exibição
+                core_reset_time = datetime.fromtimestamp(core_rate["reset"]).strftime(
+                    "%H:%M:%S"
+                )
+                search_reset_time = datetime.fromtimestamp(
+                    search_rate["reset"]
+                ).strftime("%H:%M:%S")
+
                 # Informar limites de taxa
-                print("\n--- Limites de Taxa da API GitHub ---")
-                print(
+                self.logger.info("\n--- Limites de Taxa da API GitHub ---")
+                self.logger.info(
                     f"📊 Core API: {core_rate['remaining']}/{core_rate['limit']} restantes"
                 )
-                print(
+                self.logger.info(
                     f"🔎 Search API: {search_rate['remaining']}/{search_rate['limit']} restantes"
                 )
-
-                # Calcular tempo até reset
-                core_reset = time.strftime(
-                    "%H:%M:%S", time.localtime(core_rate["reset"])
-                )
-                search_reset = time.strftime(
-                    "%H:%M:%S", time.localtime(search_rate["reset"])
-                )
-
-                print(f"⏱️ Core API reset às: {core_reset}")
-                print(f"⏱️ Search API reset às: {search_reset}")
+                self.logger.info(f"⏱️ Core API reset às: {core_reset_time}")
+                self.logger.info(f"⏱️ Search API reset às: {search_reset_time}")
 
                 # Avisar se estiver próximo do limite
                 if core_rate["remaining"] < (core_rate["limit"] * 0.1):
-                    print(f"⚠️ ATENÇÃO: Menos de 10% das requisições Core disponíveis!")
+                    self.logger.warning(
+                        f"⚠️ ATENÇÃO: Menos de 10% das requisições Core disponíveis!"
+                    )
 
                 return core_rate["remaining"], core_rate["reset"]
             else:
-                print(f"❌ Erro ao verificar limites de taxa: {response.status_code}")
+                self.logger.error(
+                    f"❌ Erro ao verificar limites de taxa: {response.status_code}"
+                )
                 return None, None
 
         except Exception as e:
-            print(f"❌ Exceção ao verificar limites de taxa: {str(e)}")
+            self.logger.error(f"❌ Exceção ao verificar limites de taxa: {str(e)}")
             return None, None
 
     def _make_request(
@@ -162,7 +213,7 @@ class GitHubClient:
             cached_data = self._get_from_cache(cache_key)
 
             if cached_data:
-                print(f"🔄 Usando dados em cache para: {url}")
+                self.logger.debug(f"🔄 Usando dados em cache para: {url}")
                 return cached_data
 
         # Fazer a requisição com retentativas
@@ -172,19 +223,26 @@ class GitHubClient:
         while retries < max_retries:
             try:
                 if method == "GET":
-                    response = requests.get(url, headers=self.headers, params=params)
+                    response = requests.get(
+                        url, headers=self.headers, params=params, timeout=30
+                    )
                 elif method == "POST":
                     response = requests.post(
-                        url, headers=self.headers, params=params, json=data
+                        url, headers=self.headers, params=params, json=data, timeout=30
                     )
                 elif method == "PUT":
                     response = requests.put(
-                        url, headers=self.headers, params=params, json=data
+                        url, headers=self.headers, params=params, json=data, timeout=30
                     )
                 elif method == "DELETE":
-                    response = requests.delete(url, headers=self.headers, params=params)
+                    response = requests.delete(
+                        url, headers=self.headers, params=params, timeout=30
+                    )
                 else:
                     raise ValueError(f"Método HTTP não suportado: {method}")
+
+                # Salvar a última resposta para uso em outros métodos
+                self.last_response = response
 
                 # Extrair informações de limite de taxa dos cabeçalhos
                 remaining = int(response.headers.get("X-RateLimit-Remaining", 0))
@@ -201,10 +259,10 @@ class GitHubClient:
 
                     # Avisar se estiver com poucas requisições restantes
                     if remaining < (limit * 0.1) and limit > 0:
-                        reset_datetime = time.strftime(
-                            "%H:%M:%S", time.localtime(reset_time)
+                        reset_datetime = datetime.fromtimestamp(reset_time).strftime(
+                            "%H:%M:%S"
                         )
-                        print(
+                        self.logger.warning(
                             f"⚠️ Apenas {remaining}/{limit} requisições restantes até {reset_datetime}"
                         )
 
@@ -215,13 +273,17 @@ class GitHubClient:
                     self.rate_limit_hits += 1
 
                     # Verificar se é realmente um problema de limite de taxa
-                    if remaining == 0 and reset_time > 0:
+                    if (
+                        "X-RateLimit-Remaining" in response.headers
+                        and int(response.headers["X-RateLimit-Remaining"]) == 0
+                    ):
+                        reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
                         current_time = time.time()
                         sleep_time = (
                             max(reset_time - current_time, 0) + 2
                         )  # Margem de segurança
 
-                        print(
+                        self.logger.warning(
                             f"⏳ Limite de taxa atingido. Aguardando {sleep_time:.1f} segundos até reset..."
                         )
                         time.sleep(sleep_time)
@@ -234,7 +296,7 @@ class GitHubClient:
                         and "Retry-After" in response.headers
                     ):
                         retry_after = int(response.headers["Retry-After"])
-                        print(
+                        self.logger.warning(
                             f"⏳ Taxa excedida. Aguardando {retry_after} segundos conforme solicitado."
                         )
                         time.sleep(retry_after)
@@ -245,7 +307,7 @@ class GitHubClient:
                     wait_time = (2**retries) + (
                         time.time() % 1
                     )  # Adiciona um pouco de aleatoriedade
-                    print(
+                    self.logger.warning(
                         f"⏳ {error_message} ({response.status_code}). Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s"
                     )
                     time.sleep(wait_time)
@@ -255,7 +317,9 @@ class GitHubClient:
                 else:
                     error_data = response.json() if response.text else {}
                     error_msg = error_data.get("message", "Sem detalhes do erro")
-                    print(f"❌ {error_message}: {response.status_code} - {error_msg}")
+                    self.logger.error(
+                        f"❌ {error_message}: {response.status_code} - {error_msg}"
+                    )
 
                     # Alguns erros não devem ser retentados
                     if response.status_code in (401, 404, 422):
@@ -263,54 +327,81 @@ class GitHubClient:
 
                     # Para outros erros, tentar novamente com backoff
                     wait_time = (2**retries) + (time.time() % 1)
-                    print(f"⏳ Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s")
+                    self.logger.warning(
+                        f"⏳ Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s"
+                    )
                     time.sleep(wait_time)
                     retries += 1
 
             except requests.exceptions.RequestException as e:
-                print(f"❌ Erro de conexão: {str(e)}")
+                self.logger.error(f"❌ Erro de conexão: {str(e)}")
                 wait_time = (2**retries) + (time.time() % 1)
-                print(f"⏳ Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s")
+                self.logger.warning(
+                    f"⏳ Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s"
+                )
                 time.sleep(wait_time)
                 retries += 1
 
         # Se chegou aqui, todas as tentativas falharam
-        print(f"❌ Falha após {max_retries} tentativas para: {url}")
+        self.logger.error(f"❌ Falha após {max_retries} tentativas para: {url}")
         return None
 
-    def get_user(self, username: str) -> Optional[Dict]:
-        """Obtém informações de um usuário."""
-        url = f"{self.base_url}/users/{username}"
+    def _fetch_repo_info(self) -> Optional[Dict]:
+        """
+        Busca informações básicas sobre o repositório.
+
+        Returns:
+            Dict: Informações do repositório ou None em caso de erro
+        """
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}"
         return self._make_request(
-            url, error_message=f"Erro ao obter usuário {username}"
+            url, error_message="Erro ao obter informações do repositório"
         )
 
-    def get_repository(self, owner: str, repo: str) -> Optional[Dict]:
-        """Obtém informações de um repositório."""
-        url = f"{self.base_url}/repos/{owner}/{repo}"
-        return self._make_request(
-            url, error_message=f"Erro ao obter repositório {owner}/{repo}"
-        )
-
-    def get_issues(
-        self, owner: str, repo: str, state: str = "all", per_page: int = 100
+    def fetch_issues(
+        self,
+        state: str = "all",
+        per_page: int = 100,
+        since: Optional[str] = None,
+        labels: Optional[str] = None,
+        sort: str = "created",
+        direction: str = "desc",
     ) -> List[Dict]:
         """
         Obtém todas as issues de um repositório, lidando com paginação.
 
         Args:
-            owner: Dono do repositório
-            repo: Nome do repositório
             state: Estado das issues (open, closed, all)
             per_page: Número de itens por página
+            since: Data ISO 8601 (YYYY-MM-DDTHH:MM:SSZ) para filtrar issues atualizadas após esta data
+            labels: Lista de labels separadas por vírgula
+            sort: Campo para ordenação (created, updated, comments)
+            direction: Direção da ordenação (asc, desc)
 
         Returns:
             List[Dict]: Lista com todas as issues
         """
-        url = f"{self.base_url}/repos/{owner}/{repo}/issues"
-        params = {"state": state, "per_page": per_page, "page": 1}
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/issues"
+        params = {
+            "state": state,
+            "per_page": per_page,
+            "page": 1,
+            "sort": sort,
+            "direction": direction,
+        }
+
+        if since:
+            params["since"] = since
+
+        if labels:
+            params["labels"] = labels
 
         all_issues = []
+        total_pages = 0
+
+        self.logger.info(
+            f"🔍 Buscando issues ({state}) do repositório {self.owner}/{self.repo}"
+        )
 
         while True:
             issues = self._make_request(
@@ -322,7 +413,15 @@ class GitHubClient:
             if not issues or len(issues) == 0:
                 break
 
-            all_issues.extend(issues)
+            # Filtra para remover PRs (a API do GitHub retorna PRs como issues)
+            filtered_issues = [issue for issue in issues if "pull_request" not in issue]
+            all_issues.extend(filtered_issues)
+
+            total_pages = params["page"]
+
+            self.logger.info(
+                f"📋 Página {params['page']}: {len(filtered_issues)} issues encontradas"
+            )
 
             # Verificar se tem mais páginas
             if len(issues) < per_page:
@@ -333,27 +432,50 @@ class GitHubClient:
             # Pequena pausa entre requisições para evitar sobrecarga
             time.sleep(0.25)
 
+        self.logger.info(
+            f"✅ Total de issues coletadas: {len(all_issues)} em {total_pages} páginas"
+        )
         return all_issues
 
-    def get_pull_requests(
-        self, owner: str, repo: str, state: str = "all", per_page: int = 100
+    def fetch_pull_requests(
+        self,
+        state: str = "all",
+        per_page: int = 100,
+        sort: str = "created",
+        direction: str = "desc",
+        base: Optional[str] = None,
     ) -> List[Dict]:
         """
         Obtém todos os pull requests de um repositório, lidando com paginação.
 
         Args:
-            owner: Dono do repositório
-            repo: Nome do repositório
             state: Estado dos PRs (open, closed, all)
             per_page: Número de itens por página
+            sort: Campo para ordenação (created, updated, popularity, long-running)
+            direction: Direção da ordenação (asc, desc)
+            base: Filtrar PRs por branch base
 
         Returns:
             List[Dict]: Lista com todos os pull requests
         """
-        url = f"{self.base_url}/repos/{owner}/{repo}/pulls"
-        params = {"state": state, "per_page": per_page, "page": 1}
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/pulls"
+        params = {
+            "state": state,
+            "per_page": per_page,
+            "page": 1,
+            "sort": sort,
+            "direction": direction,
+        }
+
+        if base:
+            params["base"] = base
 
         all_prs = []
+        total_pages = 0
+
+        self.logger.info(
+            f"🔍 Buscando pull requests ({state}) do repositório {self.owner}/{self.repo}"
+        )
 
         while True:
             prs = self._make_request(
@@ -366,6 +488,9 @@ class GitHubClient:
                 break
 
             all_prs.extend(prs)
+            total_pages = params["page"]
+
+            self.logger.info(f"📋 Página {params['page']}: {len(prs)} PRs encontrados")
 
             # Verificar se tem mais páginas
             if len(prs) < per_page:
@@ -376,30 +501,88 @@ class GitHubClient:
             # Pequena pausa entre requisições para evitar sobrecarga
             time.sleep(0.25)
 
+        self.logger.info(
+            f"✅ Total de pull requests coletados: {len(all_prs)} em {total_pages} páginas"
+        )
         return all_prs
 
-    def get_commits(
-        self, owner: str, repo: str, per_page: int = 100, since: Optional[str] = None
+    def fetch_pr_details(self, pr_number: int) -> Optional[Dict]:
+        """
+        Obtém detalhes de um pull request específico, incluindo reviews e commits.
+
+        Args:
+            pr_number: Número do pull request
+
+        Returns:
+            Dict: Dados detalhados do pull request ou None em caso de erro
+        """
+        # Buscar dados básicos do PR
+        pr_url = f"{self.base_url}/repos/{self.owner}/{self.repo}/pulls/{pr_number}"
+        pr_data = self._make_request(
+            pr_url, error_message=f"Erro ao obter PR #{pr_number}"
+        )
+
+        if not pr_data:
+            return None
+
+        # Buscar commits do PR
+        commits_url = f"{pr_url}/commits"
+        commits = self._make_request(
+            commits_url, error_message=f"Erro ao obter commits do PR #{pr_number}"
+        )
+
+        # Buscar reviews do PR
+        reviews_url = f"{pr_url}/reviews"
+        reviews = self._make_request(
+            reviews_url, error_message=f"Erro ao obter reviews do PR #{pr_number}"
+        )
+
+        # Agregar dados
+        pr_data["commits_data"] = commits or []
+        pr_data["reviews_data"] = reviews or []
+
+        return pr_data
+
+    def fetch_commits(
+        self,
+        per_page: int = 100,
+        since: Optional[str] = None,
+        until: Optional[str] = None,
+        path: Optional[str] = None,
+        author: Optional[str] = None,
     ) -> List[Dict]:
         """
         Obtém todos os commits de um repositório, lidando com paginação.
 
         Args:
-            owner: Dono do repositório
-            repo: Nome do repositório
             per_page: Número de itens por página
-            since: Data ISO 8601 para filtrar commits (YYYY-MM-DDTHH:MM:SSZ)
+            since: Data ISO 8601 para filtrar commits a partir desta data (YYYY-MM-DDTHH:MM:SSZ)
+            until: Data ISO 8601 para filtrar commits até esta data (YYYY-MM-DDTHH:MM:SSZ)
+            path: Filtra commits que modificaram arquivos neste caminho
+            author: Filtra commits por autor (username GitHub)
 
         Returns:
             List[Dict]: Lista com todos os commits
         """
-        url = f"{self.base_url}/repos/{owner}/{repo}/commits"
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/commits"
         params = {"per_page": per_page, "page": 1}
 
         if since:
             params["since"] = since
 
+        if until:
+            params["until"] = until
+
+        if path:
+            params["path"] = path
+
+        if author:
+            params["author"] = author
+
         all_commits = []
+        total_pages = 0
+
+        self.logger.info(f"🔍 Buscando commits do repositório {self.owner}/{self.repo}")
 
         while True:
             commits = self._make_request(
@@ -412,6 +595,11 @@ class GitHubClient:
                 break
 
             all_commits.extend(commits)
+            total_pages = params["page"]
+
+            self.logger.info(
+                f"📋 Página {params['page']}: {len(commits)} commits encontrados"
+            )
 
             # Verificar se tem mais páginas
             if len(commits) < per_page:
@@ -422,7 +610,25 @@ class GitHubClient:
             # Pequena pausa entre requisições para evitar sobrecarga
             time.sleep(0.25)
 
+        self.logger.info(
+            f"✅ Total de commits coletados: {len(all_commits)} em {total_pages} páginas"
+        )
         return all_commits
+
+    def fetch_commit_details(self, commit_sha: str) -> Optional[Dict]:
+        """
+        Obtém detalhes de um commit específico, incluindo alterações.
+
+        Args:
+            commit_sha: SHA do commit
+
+        Returns:
+            Dict: Dados detalhados do commit ou None em caso de erro
+        """
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/commits/{commit_sha}"
+        return self._make_request(
+            url, error_message=f"Erro ao obter detalhes do commit {commit_sha}"
+        )
 
     def search_repositories(
         self, query: str, sort: str = "stars", order: str = "desc", per_page: int = 100
@@ -463,7 +669,7 @@ class GitHubClient:
 
             if params["page"] == 1:
                 total_count = result.get("total_count", 0)
-                print(f"📊 Total de resultados encontrados: {total_count}")
+                self.logger.info(f"📊 Total de resultados encontrados: {total_count}")
 
             items = result["items"]
             all_repos.extend(items)
@@ -479,317 +685,149 @@ class GitHubClient:
 
         return all_repos
 
-    def get_statistics(self) -> Dict[str, int]:
-        """Retorna estatísticas de uso do cliente."""
-        return {
-            "requests_made": self.requests_made,
-            "cache_hits": self.cache_hits,
-            "rate_limit_hits": self.rate_limit_hits,
-        }
-
-    def clear_cache(self) -> None:
-        """Limpa todo o cache de requisições."""
-        if not self.use_cache:
-            return
-
-        try:
-            for filename in os.listdir(self.cache_dir):
-                if filename.endswith(".json"):
-                    os.remove(os.path.join(self.cache_dir, filename))
-            print(f"✅ Cache limpo com sucesso.")
-        except Exception as e:
-            print(f"❌ Erro ao limpar cache: {str(e)}")
-
     def fetch_code_files(
-        self, path: str = "", max_files: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+        self,
+        path: str = "",
+        ref: str = "main",
+        recursive: bool = True,
+        file_extensions: Optional[List[str]] = None,
+        exclude_dirs: Optional[List[str]] = None,
+        max_file_size: int = 1024 * 1024,  # 1MB por padrão
+    ) -> List[Dict]:
         """
-        Busca arquivos de código no repositório recursivamente.
+        Obtém arquivos de código de um repositório, com opções de filtragem avançada.
 
         Args:
-            path: Caminho dentro do repositório para buscar (vazio = raiz)
-            max_files: Número máximo de arquivos a serem buscados (None para sem limite)
+            path: Caminho base dentro do repositório
+            ref: Branch ou commit SHA para buscar os arquivos
+            recursive: Se deve buscar arquivos em subdiretórios recursivamente
+            file_extensions: Lista de extensões de arquivo para filtrar (.py, .js, etc)
+            exclude_dirs: Lista de diretórios para excluir da busca
+            max_file_size: Tamanho máximo do arquivo em bytes para baixar
 
         Returns:
-            Lista de dicionários contendo informações e conteúdo dos arquivos
+            List[Dict]: Lista com todos os arquivos de código e seus conteúdos
         """
-        # Verifica se já atingimos o limite de arquivos
-        if max_files is not None and max_files <= 0:
-            return []
+        if exclude_dirs is None:
+            exclude_dirs = [
+                ".git",
+                "node_modules",
+                "venv",
+                "__pycache__",
+                "build",
+                "dist",
+            ]
 
+        if file_extensions is None:
+            file_extensions = [
+                ".py",
+                ".js",
+                ".java",
+                ".cpp",
+                ".h",
+                ".c",
+                ".ts",
+                ".go",
+                ".rb",
+            ]
+
+        self.logger.info(
+            f"🔍 Buscando arquivos de código em {self.owner}/{self.repo}/{path} (ref: {ref})"
+        )
+
+        # Obter a estrutura de arquivos usando o endpoint contents
         url = f"{self.base_url}/repos/{self.owner}/{self.repo}/contents/{path}"
+        params = {"ref": ref}
 
-        try:
-            print(f"🔍 Explorando diretório: {path or 'raiz'}")
+        contents = self._make_request(
+            url,
+            params=params,
+            error_message=f"Erro ao obter estrutura de arquivos em {path}",
+        )
 
-            # Usa o método _make_request que já tem tratamento de limites de taxa e cache
-            contents = self._make_request(
-                url, error_message=f"Falha ao acessar {path}", retries=3
+        if not contents:
+            self.logger.warning(
+                f"❌ Não foi possível obter conteúdo do caminho: {path}"
             )
-
-            if not contents:
-                return []
-
-            files = []
-            dirs = []
-            total_items = len(contents)
-            processed = 0
-
-            for item in contents:
-                processed += 1
-
-                if path:  # Só mostra progresso em subdiretórios
-                    print(
-                        f"📂 Processando em {path}: {processed}/{total_items}", end="\r"
-                    )
-
-                if item["type"] == "file" and self._is_code_file(item["name"]):
-                    try:
-                        # Verifica se já atingimos o limite de arquivos
-                        if max_files is not None and len(files) >= max_files:
-                            print(f"\n✅ Limite de {max_files} arquivos atingido.")
-                            return files
-
-                        print(f"📄 Baixando: {item['path']}")
-
-                        # Usa o sistema de cache para evitar downloads repetidos
-                        cache_key = self._get_cache_key(item["download_url"])
-                        content = self._get_from_cache(cache_key)
-
-                        if content is None:
-                            # Se não estiver em cache, baixa o conteúdo respeitando limites de taxa
-                            content = self._make_request(
-                                item["download_url"],
-                                use_base_url=False,
-                                error_message=f"Falha ao baixar {item['path']}",
-                                retries=2,
-                            )
-
-                            # Salva no cache para uso futuro
-                            if content is not None:
-                                self._save_to_cache(cache_key, content)
-                        else:
-                            print(f"📋 Usando versão em cache para: {item['path']}")
-
-                        # Adiciona à lista de arquivos
-                        files.append(
-                            {
-                                "name": item["path"],
-                                "path": item["path"],
-                                "download_url": item["download_url"],
-                                "url": item["html_url"],
-                                "sha": item["sha"],
-                                "content": content,
-                            }
-                        )
-
-                    except Exception as e:
-                        print(
-                            f"⚠️ Problema ao processar arquivo {item['path']}: {str(e)}"
-                        )
-
-                elif item["type"] == "dir":
-                    dirs.append(item["path"])
-
-                # Pequena pausa adaptativa para evitar atingir limites de taxa
-                remaining, _ = self._get_rate_limit_from_headers()
-                if (
-                    remaining and remaining < 100
-                ):  # Se estiver com poucas requisições disponíveis
-                    time.sleep(1.0)  # Pausa maior
-                else:
-                    time.sleep(0.3)  # Pausa normal reduzida
-
-            if path:
-                print()  # Nova linha após terminar o processamento do diretório
-
-            # Calcula quantos arquivos ainda podemos buscar se há um limite
-            remaining_files = None
-            if max_files is not None:
-                remaining_files = max_files - len(files)
-                if remaining_files <= 0:
-                    return files
-
-            # Recursivamente buscar em subdiretórios
-            for dir_path in dirs:
-                subdir_files = self.fetch_code_files(
-                    dir_path, max_files=remaining_files
-                )
-                files.extend(subdir_files)
-
-                # Atualiza o contador de arquivos restantes
-                if remaining_files is not None:
-                    remaining_files -= len(subdir_files)
-                    if remaining_files <= 0:
-                        break
-
-            return files
-
-        except Exception as e:
-            print(f"❌ Erro ao processar diretório {path}: {str(e)}")
-            # Verifica se é um erro de limite de taxa e aguarda se necessário
-            if "rate limit exceeded" in str(e).lower():
-                self.rate_limit_hits += 1
-                print("⏱️ Limite de taxa atingido. Aguardando...")
-                self._handle_rate_limit()
-                # Tenta novamente após aguardar
-                return self.fetch_code_files(path, max_files)
-
             return []
 
-    def _is_code_file(self, filename: str) -> bool:
-        """
-        Verifica se um arquivo deve ser considerado para análise.
-        Aceita qualquer arquivo de texto que não seja log.
-        Ignora arquivos binários, imagens, vídeos e outras mídias.
+        all_files = []
 
-        Args:
-            filename: Nome do arquivo a ser verificado
+        # Processar cada item no diretório
+        for item in contents:
+            item_path = item["path"]
+            item_type = item["type"]
+            item_name = item["name"]
 
-        Returns:
-            True se o arquivo deve ser incluído, False caso contrário
-        """
+            # Pular diretórios excluídos
+            if item_type == "dir" and item_name in exclude_dirs:
+                self.logger.debug(f"⏩ Pulando diretório excluído: {item_path}")
+                continue
 
-        # Extensões de arquivos a serem ignorados (binários, mídia, etc.)
-        ignored_extensions = [
-            # Imagens
-            ".png",
-            ".jpg",
-            ".jpeg",
-            ".gif",
-            ".bmp",
-            ".tiff",
-            ".webp",
-            ".svg",
-            ".ico",
-            # Vídeos
-            ".mp4",
-            ".avi",
-            ".mov",
-            ".wmv",
-            ".flv",
-            ".mkv",
-            ".webm",
-            ".m4v",
-            # Áudio
-            ".mp3",
-            ".wav",
-            ".ogg",
-            ".flac",
-            ".aac",
-            ".m4a",
-            # Documentos binários
-            ".pdf",
-            ".doc",
-            ".docx",
-            ".ppt",
-            ".pptx",
-            ".xls",
-            ".xlsx",
-            ".odt",
-            # Arquivos compactados
-            ".zip",
-            ".tar",
-            ".gz",
-            ".rar",
-            ".7z",
-            ".bz2",
-            ".xz",
-            # Executáveis e binários
-            ".exe",
-            ".dll",
-            ".so",
-            ".dylib",
-            ".class",
-            ".pyc",
-            ".pyd",
-            ".o",
-            ".obj",
-            # Outros binários
-            ".bin",
-            ".dat",
-            ".db",
-            ".sqlite",
-            ".sqlite3",
-            ".mdb",
-            ".pkl",
-            ".parquet",
-        ]
+            # Processar subdiretórios recursivamente
+            if item_type == "dir" and recursive:
+                self.logger.debug(f"📂 Explorando subdiretório: {item_path}")
+                subdir_files = self.fetch_code_files(
+                    path=item_path,
+                    ref=ref,
+                    recursive=recursive,
+                    file_extensions=file_extensions,
+                    exclude_dirs=exclude_dirs,
+                    max_file_size=max_file_size,
+                )
+                all_files.extend(subdir_files)
 
-        # Extensões de arquivos de log
-        log_extensions = [".log", ".logs", ".logfile"]
+            # Processar arquivos de código
+            elif item_type == "file":
+                # Verificar extensão do arquivo
+                if file_extensions and not any(
+                    item_name.endswith(ext) for ext in file_extensions
+                ):
+                    self.logger.debug(
+                        f"⏩ Arquivo ignorado (extensão não corresponde): {item_path}"
+                    )
+                    continue
 
-        filename_lower = filename.lower()
+                # Verificar tamanho do arquivo
+                if item["size"] > max_file_size:
+                    self.logger.warning(
+                        f"⏩ Arquivo muito grande, pulando: {item_path} ({item['size']/1024:.1f} KB)"
+                    )
+                    continue
 
-        # Verificações em ordem de prioridade
+                # Obter conteúdo do arquivo (já vem em base64 da API do GitHub)
+                file_content = self._make_request(
+                    item["url"],
+                    error_message=f"Erro ao baixar conteúdo do arquivo {item_path}",
+                    use_cache=True,
+                )
 
-        # 1. Se for um arquivo de log, ignora
-        if (
-            any(filename_lower.endswith(ext) for ext in log_extensions)
-            or "log" in filename_lower
-        ):
-            return False
+                if file_content and "content" in file_content:
+                    try:
+                        # O conteúdo vem em base64 e precisa ser decodificado
+                        import base64
 
-        # 2. Se tiver uma extensão ignorada, ignora
-        if any(filename_lower.endswith(ext) for ext in ignored_extensions):
-            return False
+                        content = base64.b64decode(
+                            file_content["content"].replace("\n", "")
+                        ).decode("utf-8")
 
-        # 3. Arquivos sem extensão ou com extensões desconhecidas
-        # Ignora arquivos sem extensão pois podem ser binários
-        if "." not in filename_lower:
-            return False
+                        file_data = {
+                            "path": item_path,
+                            "name": item_name,
+                            "content": content,
+                            "size": item["size"],
+                            "sha": item["sha"],
+                            "url": item["html_url"],
+                        }
 
-        # 4. Para outros casos, assumimos que é um arquivo de texto
-        # que pode ser útil para análise
-        return True
+                        all_files.append(file_data)
+                        self.logger.debug(f"✅ Arquivo processado: {item_path}")
+                    except Exception as e:
+                        self.logger.error(
+                            f"❌ Erro ao decodificar arquivo {item_path}: {str(e)}"
+                        )
 
-    def _get_rate_limit_from_headers(self) -> Tuple[Optional[int], Optional[int]]:
-        """
-        Extrai informações de limite de taxa dos cabeçalhos da última resposta.
-
-        Returns:
-            Tuple(remaining, reset): Requisições restantes e timestamp para reset
-        """
-        if not hasattr(self, "_last_response") or not self._last_response:
-            return None, None
-
-        headers = self._last_response.headers
-
-        # Extrai informações de limite de taxa
-        remaining = headers.get("X-RateLimit-Remaining")
-        reset = headers.get("X-RateLimit-Reset")
-
-        if remaining is not None:
-            remaining = int(remaining)
-
-        if reset is not None:
-            reset = int(reset)
-
-        return remaining, reset
-
-    def _handle_rate_limit(self):
-        """
-        Lida com situações de limite de taxa atingido.
-        Aguarda até que o limite seja restaurado.
-        """
-        _, reset_time = self.check_rate_limit()
-
-        if reset_time:
-            current_time = int(time.time())
-            wait_time = max(reset_time - current_time + 5, 10)  # +5 segundos de margem
-
-            print(
-                f"⏱️ Aguardando {wait_time} segundos para o reset do limite de taxa..."
-            )
-
-            # Feedback visual da espera
-            for i in range(wait_time):
-                time_left = wait_time - i
-                print(f"⏳ Tempo restante: {time_left}s", end="\r")
-                time.sleep(1)
-
-            print("\n✅ Limite de taxa restaurado. Continuando operação...")
-        else:
-            # Se não conseguir obter o tempo de reset, aguarda um tempo padrão
-            print("⏱️ Aguardando 60 segundos antes de tentar novamente...")
-            time.sleep(60)
+        self.logger.info(
+            f"✅ Total de {len(all_files)} arquivos de código coletados em {path}"
+        )
+        return all_files

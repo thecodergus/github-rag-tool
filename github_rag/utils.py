@@ -251,3 +251,56 @@ def get_memory_usage() -> Dict[str, float]:
         "vms_mb": memory_info.vms / (1024 * 1024),  # Virtual Memory Size em MB
         "percent": process.memory_percent(),
     }
+
+
+def parse_github_repo_url(url: str) -> Tuple[str, str]:
+    """
+    Extrai o proprietário (owner) e o nome do repositório a partir de uma URL do GitHub.
+
+    Suporta vários formatos de URL:
+    - https://github.com/owner/repo
+    - https://github.com/owner/repo.git
+    - http://github.com/owner/repo
+    - git@github.com:owner/repo.git
+    - github.com/owner/repo
+
+    Args:
+        url: URL do repositório GitHub
+
+    Returns:
+        Tupla (owner, repo_name)
+
+    Raises:
+        ValueError: Se a URL não for válida ou não contiver as informações necessárias
+    """
+    # Remover espaços em branco
+    url = url.strip()
+
+    # Padrão para URLs HTTPS/HTTP
+    https_pattern = (
+        r"(?:https?://)?(?:www\.)?github\.com/([^/]+)/([^/\.]+)(?:\.git)?/?$"
+    )
+
+    # Padrão para URLs SSH
+    ssh_pattern = r"git@github\.com:([^/]+)/([^/\.]+)(?:\.git)?$"
+
+    # Tentar extrair com o padrão HTTPS/HTTP
+    match = re.match(https_pattern, url)
+    if match:
+        owner, repo = match.groups()
+        return owner, repo
+
+    # Tentar extrair com o padrão SSH
+    match = re.match(ssh_pattern, url)
+    if match:
+        owner, repo = match.groups()
+        return owner, repo
+
+    # Se chegamos aqui, a URL não corresponde a nenhum padrão esperado
+    raise ValueError(
+        f"URL de repositório inválida: {url}\n"
+        "Formatos aceitos:\n"
+        "- https://github.com/owner/repo\n"
+        "- github.com/owner/repo\n"
+        "- git@github.com:owner/repo.git"
+    )
