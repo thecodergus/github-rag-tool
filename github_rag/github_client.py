@@ -16,6 +16,9 @@ class GitHubClient:
         self.headers = {"User-Agent": "request"}
         self._setup_auth()
 
+        # Definir categorias de extensões de arquivo
+        self._code_extensions = self._initialize_code_extensions()
+
     def _parse_repo_url(self, url: str) -> tuple:
         """Extrai owner e repo da URL do GitHub"""
         parts = url.strip("/").split("/")
@@ -30,6 +33,336 @@ class GitHubClient:
         if github_token:
             self.headers["Authorization"] = f"token {github_token}"
 
+    def _initialize_code_extensions(self) -> Dict[str, List[str]]:
+        """Inicializa as extensões de arquivos de código organizadas por categoria"""
+        return {
+            "general": [
+                ".py",
+                ".pyc",
+                ".pyd",
+                ".pyo",
+                ".pyw",
+                ".pyz",
+                ".js",
+                ".mjs",
+                ".cjs",
+                ".ts",
+                ".tsx",
+                ".java",
+                ".class",
+                ".jar",
+                ".c",
+                ".h",
+                ".cpp",
+                ".cc",
+                ".cxx",
+                ".hpp",
+                ".hxx",
+                ".h++",
+                ".cs",
+                ".php",
+                ".phtml",
+                ".php3",
+                ".php4",
+                ".php5",
+                ".php7",
+                ".phps",
+                ".rb",
+                ".rbw",
+                ".go",
+                ".rs",
+                ".rlib",
+                ".swift",
+                ".kt",
+                ".kts",
+                ".scala",
+                ".sc",
+                ".dart",
+            ],
+            "script": [
+                ".sh",
+                ".bash",
+                ".zsh",
+                ".fish",
+                ".ps1",
+                ".psm1",
+                ".psd1",
+                ".bat",
+                ".cmd",
+                ".pl",
+                ".pm",
+                ".lua",
+                ".r",
+                ".rmd",
+                ".groovy",
+                ".tcl",
+            ],
+            "functional": [
+                ".hs",
+                ".lhs",
+                ".erl",
+                ".hrl",
+                ".ex",
+                ".exs",
+                ".clj",
+                ".cljs",
+                ".cljc",
+                ".lisp",
+                ".cl",
+                ".l",
+                ".scm",
+                ".ss",
+                ".ml",
+                ".mli",
+                ".fs",
+                ".fsi",
+                ".fsx",
+            ],
+            "domain_specific": [
+                ".sql",
+                ".m",
+                ".f",
+                ".f90",
+                ".f95",
+                ".f03",
+                ".f08",
+                ".d",
+                ".jl",
+                ".v",
+                ".sv",
+                ".vhd",
+                ".vhdl",
+                ".asm",
+                ".s",
+                ".cob",
+                ".cbl",
+                ".for",
+                ".pas",
+                ".ada",
+                ".adb",
+                ".ads",
+                ".vb",
+            ],
+            "markup": [
+                ".html",
+                ".htm",
+                ".xhtml",
+                ".xml",
+                ".xsl",
+                ".xslt",
+                ".css",
+                ".scss",
+                ".sass",
+                ".less",
+                ".json",
+                ".jsonl",
+                ".jsonc",
+                ".yaml",
+                ".yml",
+                ".md",
+                ".markdown",
+                ".tex",
+                ".sty",
+                ".cls",
+                ".rst",
+                ".toml",
+                ".haml",
+                ".jade",
+                ".pug",
+            ],
+            "template": [
+                ".tmpl",
+                ".template",
+                ".tpl",
+                ".j2",
+                ".jinja",
+                ".jinja2",
+                ".vm",
+                ".velocity",
+                ".hbs",
+                ".handlebars",
+                ".mustache",
+                ".erb",
+                ".jsp",
+                ".aspx",
+                ".ascx",
+                ".cshtml",
+                ".razor",
+            ],
+            "config": [
+                ".ini",
+                ".conf",
+                ".config",
+                ".make",
+                ".mk",
+                ".mak",
+                ".cmake",
+                ".gradle",
+                ".sbt",
+                ".ant",
+                ".prop",
+                ".properties",
+                ".dockerfile",
+                ".containerfile",
+                ".dockerignore",
+                ".tf",
+                ".tfvars",
+                ".proto",
+            ],
+            "web": [
+                ".jsx",
+                ".vue",
+                ".svelte",
+                ".astro",
+                ".elm",
+                ".coffee",
+                ".litcoffee",
+                ".as",
+                ".wsf",
+                ".ejs",
+                ".wasm",
+                ".wat",
+                ".htaccess",
+                ".xaml",
+                ".tsx",
+            ],
+            "other": [
+                ".graphql",
+                ".gql",
+                ".solidity",
+                ".sol",
+                ".ino",
+                ".nix",
+                ".bf",
+                ".nim",
+                ".re",
+                ".rei",
+                ".zig",
+                ".cr",
+                ".v",
+                ".pde",
+                ".inc",
+                ".ahk",
+                ".applescript",
+                ".purs",
+                ".haxe",
+                ".hx",
+            ],
+        }
+
+    def _make_request(
+        self, url: str, params: Dict = None, error_message: str = "Erro na requisição"
+    ) -> Optional[Dict]:
+        """
+        Faz uma requisição à API do GitHub com tratamento padronizado de erros
+
+        Args:
+            url: URL para a requisição
+            params: Parâmetros da requisição
+            error_message: Mensagem de erro personalizada
+
+        Returns:
+            Resposta da API em formato JSON ou None em caso de erro
+        """
+        try:
+            response = requests.get(url, headers=self.headers, params=params)
+            if response.status_code != 200:
+                print(f"⚠️ {error_message}: {response.status_code}")
+                return None
+            return response.json()
+        except Exception as e:
+            print(f"❌ {error_message}: {str(e)}")
+            return None
+
+    def _paginated_request(
+        self,
+        url: str,
+        params: Dict = None,
+        limit: Optional[int] = None,
+        item_name: str = "items",
+        sleep_time: float = 0.5,
+    ) -> List[Dict]:
+        """
+        Faz requisições paginadas à API do GitHub
+
+        Args:
+            url: URL base para a requisição
+            params: Parâmetros adicionais da requisição
+            limit: Número máximo de itens a serem buscados
+            item_name: Nome dos itens para mensagens de log
+            sleep_time: Tempo de espera entre requisições
+
+        Returns:
+            Lista de itens das respostas
+        """
+        items = []
+        page = 1
+        params = params or {}
+
+        while limit is None or len(items) < limit:
+            params["page"] = page
+            params["per_page"] = 100
+
+            data = self._make_request(
+                url, params=params, error_message=f"Erro ao buscar {item_name}"
+            )
+
+            if not data:
+                break
+
+            if not data:  # Lista vazia
+                break
+
+            items.extend(data)
+            page += 1
+
+            print(f"📊 Encontrados {len(items)} {item_name} até agora...", end="\r")
+            time.sleep(sleep_time)
+
+        if limit is not None:
+            items = items[:limit]
+
+        return items
+
+    def get_file_content(self, file_info: Dict[str, str]) -> str:
+        """
+        Obtém o conteúdo de um arquivo
+
+        Args:
+            file_info: Dicionário com informações do arquivo, incluindo 'download_url'
+
+        Returns:
+            Conteúdo do arquivo como string
+        """
+        try:
+            download_url = file_info["download_url"]
+            response = requests.get(download_url, headers=self.headers)
+            if response.status_code == 200:
+                return response.text
+            print(
+                f"⚠️ Falha ao baixar arquivo: {download_url} (Status: {response.status_code})"
+            )
+        except Exception as e:
+            print(f"⚠️ Erro ao baixar arquivo: {str(e)}")
+        return ""
+
+    def _is_code_file(self, filename: str) -> bool:
+        """
+        Verifica se o arquivo é um arquivo de código
+
+        Args:
+            filename: Nome do arquivo
+
+        Returns:
+            True se for um arquivo de código, False caso contrário
+        """
+        # Combina todas as extensões em uma única lista
+        all_extensions = []
+        for category_extensions in self._code_extensions.values():
+            all_extensions.extend(category_extensions)
+
+        return any(filename.endswith(ext) for ext in all_extensions)
+
     def fetch_issues(
         self, state: str = "all", limit: Optional[int] = None
     ) -> pd.DataFrame:
@@ -43,30 +376,14 @@ class GitHubClient:
         Returns:
             DataFrame com issues e seus comentários
         """
-        issues = []
-        page = 1
-
         print("🔍 Buscando issues...")
 
-        while limit is None or len(issues) < limit:
-            url = f"{self.api_base}/issues"
-            params = {"state": state, "page": page, "per_page": 100}
-            response = requests.get(url, headers=self.headers, params=params)
+        url = f"{self.api_base}/issues"
+        params = {"state": state}
 
-            if response.status_code != 200:
-                print(f"⚠️ Erro ao buscar issues: {response.status_code}")
-                break
-
-            page_issues = response.json()
-            if not page_issues:
-                break
-
-            issues.extend(page_issues)
-            page += 1
-            print(f"📊 Encontrados {len(issues)} issues até agora...", end="\r")
-
-        if limit is not None:
-            issues = issues[:limit]
+        issues = self._paginated_request(
+            url, params=params, limit=limit, item_name="issues"
+        )
 
         print(f"\n✅ Total de {len(issues)} issues encontrados")
 
@@ -114,35 +431,11 @@ class GitHubClient:
         Returns:
             Lista de comentários com seus metadados
         """
-        comments = []
-        page = 1
+        url = f"{self.api_base}/issues/{issue_number}/comments"
 
-        while True:
-            url = f"{self.api_base}/issues/{issue_number}/comments"
-            params = {"page": page, "per_page": 100}
-
-            try:
-                response = requests.get(url, headers=self.headers, params=params)
-
-                if response.status_code != 200:
-                    print(
-                        f"⚠️ Erro ao buscar comentários do issue #{issue_number}: {response.status_code}"
-                    )
-                    break
-
-                page_comments = response.json()
-                if not page_comments:
-                    break
-
-                comments.extend(page_comments)
-                page += 1
-                time.sleep(0.5)
-
-            except Exception as e:
-                print(
-                    f"❌ Erro ao buscar comentários do issue #{issue_number}: {str(e)}"
-                )
-                break
+        comments = self._paginated_request(
+            url, item_name=f"comentários do issue #{issue_number}", sleep_time=0.5
+        )
 
         # Processar e formatar comentários
         formatted_comments = []
@@ -176,13 +469,12 @@ class GitHubClient:
 
         try:
             print(f"🔍 Explorando diretório: {path or 'raiz'}")
-            response = requests.get(url, headers=self.headers)
 
-            if response.status_code != 200:
-                print(f"⚠️ Falha ao acessar {path}: {response.status_code}")
+            contents = self._make_request(url, error_message=f"Falha ao acessar {path}")
+
+            if not contents:
                 return []
 
-            contents = response.json()
             files = []
             dirs = []
 
@@ -198,7 +490,7 @@ class GitHubClient:
 
                 if item["type"] == "file" and self._is_code_file(item["name"]):
                     print(f"📄 Baixando: {item['path']}")
-                    content = self._get_file_content(item["download_url"])
+                    content = self.get_file_content(item)
                     files.append(
                         {
                             "name": item["path"],
@@ -227,242 +519,3 @@ class GitHubClient:
         except Exception as e:
             print(f"❌ Erro ao processar diretório {path}: {str(e)}")
             return []
-
-    def _get_file_content(self, download_url: str) -> str:
-        """
-        Baixa o conteúdo de um arquivo a partir da URL de download
-
-        Args:
-            download_url: URL para download do arquivo
-
-        Returns:
-            Conteúdo do arquivo como string ou string vazia em caso de falha
-        """
-        try:
-            response = requests.get(download_url, headers=self.headers)
-            if response.status_code == 200:
-                return response.text
-            print(
-                f"⚠️ Falha ao baixar arquivo: {download_url} (Status: {response.status_code})"
-            )
-        except Exception as e:
-            print(f"⚠️ Erro ao baixar arquivo: {download_url} - {str(e)}")
-
-        return ""
-
-    def _is_code_file(self, filename: str) -> bool:
-        """Verifica se o arquivo é um arquivo de código"""
-        extensions = [
-            # Linguagens de uso geral
-            ".py",
-            ".pyc",
-            ".pyd",
-            ".pyo",
-            ".pyw",
-            ".pyz",  # Python
-            ".js",
-            ".mjs",
-            ".cjs",  # JavaScript
-            ".ts",
-            ".tsx",  # TypeScript
-            ".java",
-            ".class",
-            ".jar",  # Java
-            ".c",
-            ".h",  # C
-            ".cpp",
-            ".cc",
-            ".cxx",
-            ".hpp",
-            ".hxx",
-            ".h++",  # C++
-            ".cs",  # C#
-            ".php",
-            ".phtml",
-            ".php3",
-            ".php4",
-            ".php5",
-            ".php7",
-            ".phps",  # PHP
-            ".rb",
-            ".rbw",  # Ruby
-            ".go",  # Go
-            ".rs",
-            ".rlib",  # Rust
-            ".swift",  # Swift
-            ".kt",
-            ".kts",  # Kotlin
-            ".scala",
-            ".sc",  # Scala
-            ".dart",  # Dart
-            # Linguagens de script/shell
-            ".sh",
-            ".bash",
-            ".zsh",
-            ".fish",  # Shell scripts
-            ".ps1",
-            ".psm1",
-            ".psd1",  # PowerShell
-            ".bat",
-            ".cmd",  # Batch (Windows)
-            ".pl",
-            ".pm",  # Perl
-            ".lua",  # Lua
-            ".r",
-            ".rmd",  # R
-            ".groovy",  # Groovy
-            ".tcl",  # Tcl
-            # Linguagens funcionais
-            ".hs",
-            ".lhs",  # Haskell
-            ".erl",
-            ".hrl",  # Erlang
-            ".ex",
-            ".exs",  # Elixir
-            ".clj",
-            ".cljs",
-            ".cljc",  # Clojure
-            ".lisp",
-            ".cl",
-            ".l",  # Common Lisp
-            ".scm",
-            ".ss",  # Scheme
-            ".ml",
-            ".mli",  # OCaml
-            ".fs",
-            ".fsi",
-            ".fsx",  # F#
-            # Linguagens específicas de domínio
-            ".sql",  # SQL
-            ".m",  # MATLAB/Objective-C
-            ".f",
-            ".f90",
-            ".f95",
-            ".f03",
-            ".f08",  # Fortran
-            ".d",  # D
-            ".jl",  # Julia
-            ".v",
-            ".sv",  # Verilog/SystemVerilog
-            ".vhd",
-            ".vhdl",  # VHDL
-            ".asm",
-            ".s",  # Assembly
-            ".cob",
-            ".cbl",  # COBOL
-            ".for",  # Fortran (antigo)
-            ".pas",  # Pascal
-            ".ada",
-            ".adb",
-            ".ads",  # Ada
-            ".vb",  # Visual Basic
-            # Linguagens de marcação/estilo
-            ".html",
-            ".htm",
-            ".xhtml",  # HTML
-            ".xml",
-            ".xsl",
-            ".xslt",  # XML
-            ".css",
-            ".scss",
-            ".sass",
-            ".less",  # CSS e pré-processadores
-            ".json",
-            ".jsonl",
-            ".jsonc",  # JSON
-            ".yaml",
-            ".yml",  # YAML
-            ".md",
-            ".markdown",  # Markdown
-            ".tex",
-            ".sty",
-            ".cls",  # LaTeX
-            ".rst",  # reStructuredText
-            ".toml",  # TOML
-            ".haml",  # Haml
-            ".jade",
-            ".pug",  # Jade/Pug
-            # Linguagens de template
-            ".tmpl",
-            ".template",  # Templates genéricos
-            ".tpl",  # Templates Smarty
-            ".j2",
-            ".jinja",
-            ".jinja2",  # Jinja
-            ".vm",
-            ".velocity",  # Velocity
-            ".hbs",
-            ".handlebars",
-            ".mustache",  # Handlebars/Mustache
-            ".erb",  # ERB (Ruby)
-            ".jsp",  # JSP (Java)
-            ".aspx",
-            ".ascx",  # ASP.NET
-            ".cshtml",
-            ".razor",  # Razor (C#)
-            # Arquivos de configuração/build
-            ".ini",  # INI
-            ".conf",
-            ".config",  # Configurações
-            ".make",
-            ".mk",
-            ".mak",  # Makefiles
-            ".cmake",  # CMake
-            ".gradle",  # Gradle
-            ".sbt",  # SBT (Scala)
-            ".ant",  # ANT
-            ".prop",
-            ".properties",  # Properties
-            ".dockerfile",
-            ".containerfile",  # Dockerfile
-            ".dockerignore",  # Docker ignore
-            ".tf",
-            ".tfvars",  # Terraform
-            ".proto",  # Protocol Buffers
-            # Web/Mobile
-            ".jsx",  # React JSX
-            ".vue",  # Vue.js
-            ".svelte",  # Svelte
-            ".astro",  # Astro
-            ".elm",  # Elm
-            ".coffee",
-            ".litcoffee",  # CoffeeScript
-            ".as",  # ActionScript
-            ".wsf",  # Windows Script File
-            ".ejs",  # EJS
-            ".wasm",  # WebAssembly
-            ".wat",  # WebAssembly Text
-            ".htaccess",  # Apache config
-            ".xaml",  # XAML
-            ".tsx",  # TypeScript React
-            # Outros
-            ".graphql",
-            ".gql",  # GraphQL
-            ".solidity",
-            ".sol",  # Solidity
-            ".ino",  # Arduino
-            ".nix",  # Nix
-            ".bf",  # Brainfuck
-            ".nim",  # Nim
-            ".re",
-            ".rei",  # ReasonML
-            ".zig",  # Zig
-            ".cr",  # Crystal
-            ".v",  # V
-            ".pde",  # Processing
-            ".inc",  # Include files
-            ".ahk",  # AutoHotkey
-            ".applescript",  # AppleScript
-            ".purs",  # PureScript
-            ".haxe",
-            ".hx",  # Haxe
-        ]
-
-        return any(filename.endswith(ext) for ext in extensions)
-
-    def get_file_content(self, file_info: Dict[str, str]) -> str:
-        """Obtém o conteúdo de um arquivo"""
-        response = requests.get(file_info["download_url"], headers=self.headers)
-        if response.status_code == 200:
-            return response.text
-        return ""
