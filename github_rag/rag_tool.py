@@ -59,7 +59,7 @@ class GitHubRagTool:
             "chunk_size": 1000,
             "chunk_overlap": 200,
             "retriever_k": 7,
-            "retriever_fetch_k": 50,
+            "retriever_fetch_k": 30,
             "retriever_search_type": "mmr",
             "use_memory": True,
             "memory_window": 10,
