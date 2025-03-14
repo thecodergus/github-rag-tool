@@ -97,11 +97,14 @@ config_options = {
 ✅ Preparação concluída em 45.23 segundos
 
 📊 Status da Ferramenta:
-- Documentos indexados: 157
-- Tamanho total da base: 25.3 MB
-- Tipos de conteúdo: código, issues, pull requests
+- Sessão: session_20250313224434_28d3d4c5
+- Modelo de Chat: gpt-4o-mini
+- Modelo de Embedding: text-embedding-3-large
+- Base vetorial pronta: True
+- Documentos indexados: 1724
 
-💬 Faça uma pergunta sobre o repositório (digite 'sair' para encerrar):
+💬 Modo de consulta ativado para o repositório lerobot
+Digite 'sair' para encerrar, 'status' para ver estatísticas, ou 'ajuda' para comandos adicionais
 > Qual é o propósito do LeRobot?
 
 🤖 LeRobot visa tornar a IA para robótica mais acessível através da aprendizagem de ponta a ponta. O projeto fornece modelos pré-treinados, datasets e ferramentas para robótica no mundo real usando PyTorch. Seu objetivo é reduzir a barreira de entrada para a robótica, permitindo que todos possam contribuir e se beneficiar do compartilhamento de datasets e modelos pré-treinados.
@@ -126,17 +129,3 @@ Contribuições são bem-vindas! Para contribuir:
 ## 📄 Licença
 
 Este projeto está licenciado sob a licença MIT - veja o arquivo LICENSE para detalhes.
-
----
-
-## 🔮 Próximos Passos
-
-- Suporte a repositórios privados
-- Interface gráfica para interação mais amigável
-- Integração com IDEs populares
-- Exportação de relatórios automáticos
-- Análise comparativa entre repositórios
-
----
-
-Desenvolvido com 💙 por Gustavo Michels de Camargo
