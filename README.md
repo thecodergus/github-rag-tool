@@ -15,9 +15,10 @@ O GitHub RAG Tool é um projeto dedicado à criação de agentes inteligentes ca
 
 ## 🔧 Requisitos
 
-- Python 3.8+
+- Python 3.12.9+
 - Chaves de API para serviços de LLM (OpenAI, etc)
 - Acesso à internet para conexão com GitHub
+- Token de uso da API do GitHub
 
 ## 📦 Instalação
 
