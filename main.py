@@ -149,7 +149,7 @@ def main():
             print("\n📚 Fontes do conhecimento:")
             for i, fonte in enumerate(fontes, 1):
                 print(
-                    f"  {i}. {fonte.get('tipo', 'Tipo desconhecido')}: {fonte.get('título', 'Sem título')}"
+                    f"  [{i}] {fonte.get('tipo', 'Tipo desconhecido')}: {fonte.get('título', 'Sem título')}"
                 )
                 if fonte.get("url"):
                     print(f"     URL: {fonte.get('url')}")
