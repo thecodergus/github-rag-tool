@@ -1,5 +1,9 @@
 # GitHub RAG Tool
 
+![GitHub stars](https://img.shields.io/badge/GitHub-RAG-blue)
+![Python](https://img.shields.io/badge/Python-3.12.9%2B-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 ## 🚀 Visão Geral
 
 O GitHub RAG Tool é um projeto dedicado à criação de agentes inteligentes capazes de dialogar com repositórios do GitHub. Utilizando técnicas avançadas de RAG (Retrieval-Augmented Generation), a ferramenta permite que usuários façam perguntas sobre qualquer repositório e obtenham respostas contextualizadas, baseadas no código fonte, issues e pull requests.
@@ -41,6 +45,18 @@ O GitHub RAG Tool é um projeto dedicado à criação de agentes inteligentes ca
    GITHUB_API_TOKEN=<seu_token_github>
    ```
 
+## 🛠️ Tecnologias Utilizadas
+
+O projeto utiliza um conjunto de tecnologias modernas para processamento de linguagem natural e recuperação de informações:
+
+- **LangChain**: Framework para construção de aplicações com modelos de linguagem
+- **FAISS**: Biblioteca para busca de similaridade eficiente em grandes bases de dados vetoriais
+- **OpenAI API**: Fornece modelos como GPT-4o para geração de texto e embeddings
+- **GitHub API**: Permite acessar repositórios, issues e pull requests programaticamente
+- **Chroma DB**: Banco de dados vetorial para armazenamento de embeddings
+- **Python asyncio**: Para processamento assíncrono e melhor desempenho
+- **PyTorch**: Base para processamento de modelos de ML (utilizado indiretamente)
+
 ## 🔍 Como Usar
 
 ### Uso Básico
@@ -57,7 +73,6 @@ python main.py
 2. **Construção da Base de Conhecimento**: O repositório é analisado e indexado
 3. **Interação**: Faça perguntas sobre o repositório e receba respostas contextualizadas
 4. **Salvamento**: A sessão é automaticamente salva para uso futuro
-
 
 ## ⚙️ Configurações Avançadas
 
@@ -86,7 +101,9 @@ config_options = {
 
 ```
 🚀 Iniciando sessão com o repositório: https://github.com/huggingface/lerobot
+
 🔧 Inicializando a ferramenta RAG...
+
 ⚙️ Configurações aplicadas: {
   "chunk_size": 1200,
   "chunk_overlap": 300,
@@ -94,7 +111,9 @@ config_options = {
   "use_memory": true,
   "memory_window": 5
 }
+
 🔍 Construindo base de conhecimento...
+
 ✅ Preparação concluída em 45.23 segundos
 
 📊 Status da Ferramenta:
@@ -106,6 +125,7 @@ config_options = {
 
 💬 Modo de consulta ativado para o repositório lerobot
 Digite 'sair' para encerrar, 'status' para ver estatísticas, ou 'ajuda' para comandos adicionais
+
 > Qual é o propósito do LeRobot?
 
 🤖 LeRobot visa tornar a IA para robótica mais acessível através da aprendizagem de ponta a ponta. O projeto fornece modelos pré-treinados, datasets e ferramentas para robótica no mundo real usando PyTorch. Seu objetivo é reduzir a barreira de entrada para a robótica, permitindo que todos possam contribuir e se beneficiar do compartilhamento de datasets e modelos pré-treinados.
@@ -116,6 +136,29 @@ Digite 'sair' para encerrar, 'status' para ver estatísticas, ou 'ajuda' para co
 [2] Issue #42: Roadmap para implementação de novos ambientes
     URL: https://github.com/huggingface/lerobot/issues/42
 ```
+
+## 📈 Gerenciamento de Rate Limits
+
+O sistema implementa estratégias inteligentes para lidar com limites de taxa (rate limits) da API OpenAI e GitHub:
+
+- **Retry com backoff exponencial**: Espera progressivamente mais tempo entre tentativas
+- **Agrupamento de requisições**: Otimiza o número de chamadas à API
+- **Caching de resultados**: Evita requisições redundantes
+- **Monitoramento de uso**: Acompanha o consumo de tokens para evitar custos excessivos
+
+## 🔬 Modelos Suportados
+
+A ferramenta é compatível com diversos modelos de linguagem e embeddings:
+
+- **Modelos de Chat**:
+  - OpenAI: GPT-4o, GPT-4-Turbo, GPT-3.5-Turbo
+  <!-- - Anthropic: Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
+  - Mistral: Mistral Large, Mistral Medium -->
+  
+- **Modelos de Embedding**:
+  - OpenAI: text-embedding-3-large, text-embedding-3-small, text-embedding-ada-002
+  <!-- - Hugging Face: sentence-transformers (via API ou localmente)
+  - BAAI: bge-large-en -->
 
 ## 🤝 Contribuição
 
@@ -129,4 +172,4 @@ Contribuições são bem-vindas! Para contribuir:
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a licença MIT - veja o arquivo LICENSE para detalhes.
+Este projeto está licenciado sob a licença MIT - veja o arquivo LICENSE para detalhes. 
