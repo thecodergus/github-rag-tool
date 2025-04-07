@@ -149,6 +149,9 @@ class HierarchicalChunker:
 
             return "\n".join(items)
 
+        # Variável para rastrear o último hash de cabeçalho
+        last_header_hash = ""
+
         for token in tokens_ast:
             ttype = token.get("type", "")
 
@@ -162,6 +165,9 @@ class HierarchicalChunker:
                 else:
                     current_hierarchy = current_hierarchy[: level - 1] + [header_text]
 
+                # Atualiza o hash do último cabeçalho
+                last_header_hash = hashlib.sha256(header_text.encode()).hexdigest()[:16]
+
             elif ttype in {"paragraph", "block_code", "list", "block_quote", "table"}:
                 # Processa outros tipos que dependem do header_path
                 content = token.get("raw", "")
@@ -172,7 +178,12 @@ class HierarchicalChunker:
 
                 # Tipo de chunk ajustado dinamicamente:
                 chunk_type = ttype if ttype != "list" else "list"
-                metadata = {}
+                metadata = {
+                    "section": (
+                        ".".join(current_hierarchy) if current_hierarchy else "root"
+                    ),
+                    "level": len(current_hierarchy),
+                }
 
                 # Adiciona metadata para listas e blocos de código
                 if ttype == "list":
@@ -193,10 +204,11 @@ class HierarchicalChunker:
                 if content.strip():
                     chunks.append(
                         ContentChunk(
-                            header_path=current_hierarchy.copy(),  # Corrigido para usar hierarquia
+                            header_path=current_hierarchy.copy(),
                             content=content,
                             chunk_type=chunk_type,
                             metadata=metadata,
+                            parent_hash=last_header_hash,  # Adiciona referência ao último cabeçalho
                             self_hash=hashlib.sha256(content.encode()).hexdigest()[:16],
                         )
                     )
@@ -205,10 +217,17 @@ class HierarchicalChunker:
                 # Quebras temáticas (ex: "---") ainda estão associadas ao header_path atual
                 chunks.append(
                     ContentChunk(
-                        header_path=current_hierarchy.copy(),  # Respeita hierarquia do contexto atual
-                        content="---",  # Representa o separador
+                        header_path=current_hierarchy.copy(),
+                        content="---",
                         chunk_type="thematic_break",
-                        metadata={},
+                        metadata={
+                            "section": (
+                                ".".join(current_hierarchy)
+                                if current_hierarchy
+                                else "root"
+                            )
+                        },
+                        parent_hash=last_header_hash,  # Adiciona referência ao último cabeçalho
                         self_hash=hashlib.sha256("---".encode()).hexdigest()[:16],
                     )
                 )
@@ -219,128 +238,6 @@ class HierarchicalChunker:
 
         # Retorna a estrutura esperada
         return {"children": chunks}
-
-    # HTML Parser
-    def _parse_html(self, content: str) -> Dict:
-        soup = BeautifulSoup(content, "html.parser")
-        return self._build_html_tree(soup.find_all(True))
-
-    def _build_html_tree(self, elements: List, level: int = 0) -> Dict:
-        tree = {"children": [], "current_text": ""}
-        for element in elements:
-            if element.name in self.config["header_levels"]["html"]:
-                header_level = int(element.name[1])
-                tree["children"].append(
-                    {
-                        "type": "header",
-                        "level": header_level,
-                        "text": element.get_text(),
-                        "children": self._build_html_tree(
-                            element.next_siblings, header_level
-                        ),
-                    }
-                )
-            elif element.name == "pre":
-                code_content = element.get_text()
-                tree["children"].append(
-                    ContentChunk(
-                        header_path=self._get_current_path(),
-                        content=code_content,
-                        chunk_type="code_block",
-                        metadata={"language": self._detect_code_language(element)},
-                    )
-                )
-            else:
-                tree["current_text"] += element.get_text() + "\n"
-
-        # Process remainder text
-        if tree["current_text"]:
-            tree["children"].append(
-                ContentChunk(
-                    header_path=self._get_current_path(),
-                    content=tree["current_text"],
-                    chunk_type="text",
-                    metadata={},
-                )
-            )
-        return tree
-
-    # LaTeX Parser
-    def _parse_latex(self, content: str) -> Dict:
-        sections = re.findall(
-            r"\$section|subsection|subsubsection)\*?{(.*?)}", content, re.DOTALL
-        )
-        structure = []
-        current_level = 0
-        current_path = []
-
-        for section_type, content in sections:
-            level = self.config["header_levels"]["latex"].index(section_type) + 1
-            title = content.split("\n")[0].strip()
-
-            if level > current_level:
-                current_path.append(title)
-            else:
-                current_path = current_path[: level - 1] + [title]
-
-            section_content = self._extract_latex_content(content)
-            structure.append({"paths": current_path.copy(), "content": section_content})
-
-        return structure
-
-    # PDF Parser
-    def _parse_pdf(self, content: bytes) -> Dict:
-        doc = pymupdf.open(stream=content, filetype="pdf")
-        structure = []
-        current_hierarchy = []
-        prev_heading = None
-
-        for page in doc:
-            blocks = page.get_text("dict", flags=pymupdf.TEXT_PRESERVE_WHITESPACE)[
-                "blocks"
-            ]
-
-            for block in blocks:
-                if "lines" in block:
-                    for line in block["lines"]:
-                        for span in line["spans"]:
-                            if self._is_pdf_heading(span):
-                                level = self._determine_pdf_heading_level(span)
-                                title = span["text"]
-
-                                if not prev_heading or level <= prev_heading["level"]:
-                                    current_hierarchy = current_hierarchy[
-                                        : level - 1
-                                    ] + [title]
-
-                                structure.append(
-                                    {
-                                        "paths": current_hierarchy.copy(),
-                                        "content": "",
-                                        "level": level,
-                                    }
-                                )
-                                prev_heading = {"text": title, "level": level}
-                            else:
-                                if structure:
-                                    structure[-1]["content"] += span["text"]
-
-        return structure
-
-    def _is_pdf_heading(self, span: Dict) -> bool:
-        font_size = span["size"]
-        font_name = span["font"].lower()
-        header_sizes = self.config["header_levels"]["pdf"]["font_sizes"]
-        header_fonts = set(
-            f.lower() for f in self.config["header_levels"]["pdf"]["font_names"]
-        )
-        return (font_size in header_sizes) and (font_name in header_fonts)
-
-    def _determine_pdf_heading_level(self, span: Dict) -> int:
-        sorted_sizes = sorted(
-            set(self.config["header_levels"]["pdf"]["font_sizes"]), reverse=True
-        )
-        return sorted_sizes.index(span["size"]) + 1
 
 
 if __name__ == "__main__":
