@@ -6,9 +6,6 @@ import multiprocessing
 from urllib.parse import urlparse
 import pickle
 import hashlib
-import dotenv
-
-dotenv.load_dotenv()
 
 
 class GitHubDataExtractor:
@@ -285,16 +282,3 @@ class GitHubDataExtractor:
                 "download_url": file_info["download_url"],
             },
         }
-
-
-if __name__ == "__main__":
-    git = GitHubDataExtractor(
-        github_api_token=os.environ.get("GITHUB_API_TOKEN"),
-        repo_url="https://github.com/huggingface/lerobot",
-    )
-
-    resultado = git.get_structured_data(
-        ["issues", "pull_requests", "releases", "documentation"]
-    )
-
-    print(resultado)
