@@ -1,0 +1,3574 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+github_rag/
+  __init__.py
+  .gitignore
+  conversation.py
+  data_loader.py
+  github_client.py
+  rag_tool.py
+  utils.py
+  vector_store.py
+.gitignore
+LICENSE
+main.py
+README.md
+requirements.txt
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="github_rag/__init__.py">
+from .rag_tool import GitHubRagTool
+
+__all__ = ["GitHubRagTool"]
+</file>
+
+<file path="github_rag/.gitignore">
+__pycache__/
+</file>
+
+<file path="LICENSE">
+MIT License
+
+Copyright (c) 2025 Gustavo Michels de Camargo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</file>
+
+<file path="requirements.txt">
+aiohappyeyeballs==2.6.1
+aiohttp==3.11.14
+aiosignal==1.3.2
+annotated-types==0.7.0
+anyio==4.9.0
+asgiref==3.8.1
+attrs==25.3.0
+backoff==2.2.1
+bcrypt==4.3.0
+build==1.2.2.post1
+cachetools==5.5.2
+certifi==2025.1.31
+charset-normalizer==3.4.1
+chroma-hnswlib==0.7.6
+chromadb==0.6.3
+click==8.1.8
+coloredlogs==15.0.1
+dataclasses-json==0.6.7
+Deprecated==1.2.18
+distro==1.9.0
+dotenv==0.9.9
+durationpy==0.9
+fastapi==0.115.12
+filelock==3.18.0
+flatbuffers==25.2.10
+frozenlist==1.5.0
+fsspec==2025.3.0
+google-auth==2.38.0
+googleapis-common-protos==1.69.2
+greenlet==3.1.1
+grpcio==1.71.0
+h11==0.14.0
+httpcore==1.0.7
+httptools==0.6.4
+httpx==0.28.1
+httpx-sse==0.4.0
+huggingface-hub==0.29.3
+humanfriendly==10.0
+idna==3.10
+importlib_metadata==8.6.1
+importlib_resources==6.5.2
+jiter==0.9.0
+jsonpatch==1.33
+jsonpointer==3.0.0
+kubernetes==32.0.1
+langchain==0.3.21
+langchain-community==0.3.20
+langchain-core==0.3.49
+langchain-openai==0.3.11
+langchain-text-splitters==0.3.7
+langsmith==0.3.19
+markdown-it-py==3.0.0
+marshmallow==3.26.1
+mdurl==0.1.2
+mmh3==5.1.0
+monotonic==1.6
+mpmath==1.3.0
+multidict==6.2.0
+mypy-extensions==1.0.0
+numpy==2.2.4
+oauthlib==3.2.2
+onnxruntime==1.21.0
+openai==1.68.2
+opentelemetry-api==1.31.1
+opentelemetry-exporter-otlp-proto-common==1.31.1
+opentelemetry-exporter-otlp-proto-grpc==1.31.1
+opentelemetry-instrumentation==0.52b1
+opentelemetry-instrumentation-asgi==0.52b1
+opentelemetry-instrumentation-fastapi==0.52b1
+opentelemetry-proto==1.31.1
+opentelemetry-sdk==1.31.1
+opentelemetry-semantic-conventions==0.52b1
+opentelemetry-util-http==0.52b1
+orjson==3.10.16
+overrides==7.7.0
+packaging==24.2
+pandas==2.2.3
+posthog==3.23.0
+propcache==0.3.1
+protobuf==5.29.4
+pyasn1==0.6.1
+pyasn1_modules==0.4.1
+pydantic==2.10.6
+pydantic-settings==2.8.1
+pydantic_core==2.27.2
+Pygments==2.19.1
+PyPika==0.48.9
+pyproject_hooks==1.2.0
+python-dateutil==2.9.0.post0
+python-dotenv==1.1.0
+pytz==2025.2
+PyYAML==6.0.2
+regex==2024.11.6
+requests==2.32.3
+requests-oauthlib==2.0.0
+requests-toolbelt==1.0.0
+rich==13.9.4
+rsa==4.9
+shellingham==1.5.4
+six==1.17.0
+sniffio==1.3.1
+SQLAlchemy==2.0.39
+starlette==0.46.1
+sympy==1.13.3
+tenacity==9.0.0
+tiktoken==0.9.0
+tokenizers==0.21.1
+tqdm==4.67.1
+typer==0.15.2
+typing-inspect==0.9.0
+typing_extensions==4.13.0
+tzdata==2025.2
+urllib3==2.3.0
+uvicorn==0.34.0
+uvloop==0.21.0
+watchfiles==1.0.4
+websocket-client==1.8.0
+websockets==15.0.1
+wrapt==1.17.2
+yarl==1.18.3
+zipp==3.21.0
+zstandard==0.23.0
+</file>
+
+<file path="github_rag/conversation.py">
+from typing import Optional, Dict, Any, List, Union
+from langchain.memory import ConversationBufferMemory, MongoDBChatMessageHistory
+from langchain_openai import ChatOpenAI
+from langchain.chains import ConversationalRetrievalChain
+from langchain.prompts import PromptTemplate
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+import logging
+import json
+import os
+from datetime import datetime
+
+
+class ConversationManager:
+    """
+    Gerencia a conversação baseada em RAG (Retrieval Augmented Generation) para consultas sobre
+    repositórios GitHub, integrando recuperação de documentos com memória de conversação.
+    """
+
+    def __init__(
+        self,
+        retriever: Any,
+        model_name: str = "gpt-4o",
+        session_id: Optional[str] = None,
+        temperature: float = 0.7,
+        memory_enabled: bool = True,
+        memory_window: int = 5,
+        retriever_k: int = 5,
+        streaming: bool = False,
+        verbose: bool = False,
+    ):
+        """
+        Inicializa o gerenciador de conversação.
+
+        Args:
+            retriever: O recuperador de documentos a ser usado para RAG
+            model_name: Nome do modelo LLM a ser utilizado
+            session_id: Identificador único da sessão de conversação
+            temperature: Temperatura para geração de respostas (0.0-1.0)
+            memory_enabled: Se a memória de conversação deve ser habilitada
+            memory_window: Número de trocas de mensagens a manter na memória
+            retriever_k: Número de documentos a recuperar por consulta
+            streaming: Se as respostas devem ser transmitidas em tempo real
+            verbose: Se logs detalhados devem ser exibidos
+        """
+        self.retriever = retriever
+        self.model_name = model_name
+        self.session_id = (
+            session_id or f"session_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        )
+        self.temperature = temperature
+        self.memory_enabled = memory_enabled
+        self.memory_window = memory_window
+        self.retriever_k = retriever_k
+        self.streaming = streaming
+        self.verbose = verbose
+        self.conversation_chain = None
+        self.memory = None
+        self.stats = {
+            "queries": 0,
+            "tokens_used": 0,
+            "start_time": datetime.now().isoformat(),
+        }
+
+        # Configurar logger
+        logging.basicConfig(level=logging.INFO if verbose else logging.WARNING)
+        self.logger = logging.getLogger(__name__)
+
+        self.setup_conversation()
+
+    def setup_conversation(self):
+        """
+        Configura a cadeia de conversação RAG com os componentes necessários:
+        - Memória de conversação (local ou MongoDB)
+        - LLM com configurações personalizadas
+        - Cadeia de recuperação conversacional
+        """
+        # Configurar memória apenas se habilitada
+        if self.memory_enabled:
+            if self.session_id.startswith("mongodb:"):
+                # Usar MongoDB como armazenamento se especificado
+                mongo_connection_string = self.session_id.replace("mongodb:", "")
+                self.logger.info(
+                    f"Usando MongoDB para armazenamento de histórico: {self.session_id}"
+                )
+
+                message_history = MongoDBChatMessageHistory(
+                    connection_string=mongo_connection_string,
+                    session_id=self.session_id,
+                )
+
+                self.memory = ConversationBufferMemory(
+                    memory_key="chat_history",
+                    return_messages=True,
+                    output_key="answer",
+                    chat_memory=message_history,
+                    k=self.memory_window,
+                )
+            else:
+                # Usar memória de buffer padrão
+                self.logger.info(
+                    f"Usando memória de buffer local para sessão: {self.session_id}"
+                )
+                self.memory = ConversationBufferMemory(
+                    memory_key="chat_history",
+                    return_messages=True,
+                    output_key="answer",
+                    k=self.memory_window,
+                )
+        else:
+            self.logger.info("Memória de conversação desabilitada")
+            self.memory = None
+
+        # Configurar callbacks para streaming se necessário
+        callbacks = None
+        if self.streaming:
+            callbacks = CallbackManager([StreamingStdOutCallbackHandler()])
+
+        # Template personalizado para contexto de código
+        qa_prompt = PromptTemplate.from_template(
+            """Você é um assistente especializado em desenvolvimento de software e código.
+            Utilize as informações dos documentos para responder à pergunta do usuário.
+            Se a resposta não puder ser derivada dos documentos, indique isso claramente e caso puder, dê ao usuario a fonte da informação.
+            Ao discutir código, forneça explicações claras e, quando apropriado, exemplos de uso.
+            
+            Contexto: {context}
+            
+            Pergunta: {question}
+            
+            Resposta:"""
+        )
+
+        # Configurar LLM
+        llm = ChatOpenAI(
+            model_name=os.environ.get("OPENAI_MODEL"),
+            temperature=self.temperature,
+            streaming=self.streaming,
+            callbacks=callbacks,
+            verbose=self.verbose,
+        )
+
+        # Configurar cadeia de conversação
+        self.conversation_chain = ConversationalRetrievalChain.from_llm(
+            llm=llm,
+            retriever=self.retriever,
+            memory=self.memory,
+            return_source_documents=True,
+            combine_docs_chain_kwargs={"prompt": qa_prompt},
+            verbose=self.verbose,
+            get_chat_history=self._get_formatted_chat_history,
+        )
+
+        self.logger.info(
+            f"Cadeia de conversação configurada com modelo {self.model_name}"
+        )
+
+    def _get_formatted_chat_history(self, chat_history):
+        """Formata o histórico de chat para contexto adequado"""
+        formatted_history = ""
+        for message in chat_history:
+            if isinstance(message, tuple) and len(message) == 2:
+                human, ai = message
+                formatted_history += f"Humano: {human}\nAssistente: {ai}\n\n"
+        return formatted_history
+
+    def query(self, question: str) -> Dict[str, Any]:
+        """
+        Realiza uma consulta ao sistema RAG.
+
+        Args:
+            question: A pergunta do usuário
+
+        Returns:
+            Dicionário contendo a resposta e informações sobre as fontes utilizadas
+        """
+        if not self.conversation_chain:
+            raise ValueError("Conversation chain não foi inicializada")
+
+        self.logger.info(f"Processando pergunta: {question}")
+        self.stats["queries"] += 1
+
+        try:
+            # Realizar a consulta
+            result = self.conversation_chain({"question": question})
+
+            # Atualizar estatísticas (estimativa simplificada de tokens)
+            token_estimate = len(question) // 4 + len(result.get("answer", "")) // 4
+            self.stats["tokens_used"] += token_estimate
+
+            # Processar e formatar fontes
+            sources = self._process_source_documents(result.get("source_documents", []))
+
+            return {
+                "resposta": result.get("answer", ""),
+                "fontes": sources,
+                "confiança": self._calculate_confidence(sources),
+            }
+
+        except Exception as e:
+            self.logger.error(f"Erro ao processar consulta: {str(e)}")
+            return {
+                "resposta": f"Ocorreu um erro ao processar sua consulta: {str(e)}",
+                "fontes": [],
+                "confiança": 0.0,
+            }
+
+    def _process_source_documents(self, documents) -> List[Dict[str, Any]]:
+        """
+        Processa e formata os documentos-fonte recuperados.
+        """
+        sources = []
+        for doc in documents:
+            if not hasattr(doc, "metadata") or not isinstance(doc.metadata, dict):
+                continue
+
+            source_type = doc.metadata.get("source", "desconhecido")
+            source_info = {
+                "tipo": source_type.capitalize(),
+                "relevância": (
+                    doc.metadata.get("score", 0.0) if "score" in doc.metadata else None
+                ),
+                "conteúdo_parcial": (
+                    doc.page_content[:150] + "..."
+                    if len(doc.page_content) > 150
+                    else doc.page_content
+                ),
+            }
+
+            # Adicionar metadados específicos por tipo
+            if source_type == "issue":
+                source_info.update(
+                    {
+                        "número": doc.metadata.get("issue_number"),
+                        "título": doc.metadata.get("title"),
+                        "status": doc.metadata.get("state"),
+                        "url": doc.metadata.get("url"),
+                    }
+                )
+            elif source_type == "code":
+                source_info.update(
+                    {
+                        "arquivo": doc.metadata.get("filename"),
+                        "linguagem": doc.metadata.get("language", "desconhecida"),
+                        "caminho": doc.metadata.get("filepath", ""),
+                        "url": doc.metadata.get("url"),
+                    }
+                )
+            elif source_type == "pull_request":
+                source_info.update(
+                    {
+                        "número": doc.metadata.get("pr_number"),
+                        "título": doc.metadata.get("title"),
+                        "status": doc.metadata.get("state"),
+                        "url": doc.metadata.get("url"),
+                    }
+                )
+
+            sources.append(source_info)
+
+        return sources
+
+    def _calculate_confidence(self, sources):
+        """Calcula um valor de confiança baseado nas fontes recuperadas"""
+        if not sources:
+            return 0.0
+
+        # Heurística simples baseada no número e relevância das fontes
+        relevance_scores = [
+            s.get("relevância", 0.0) for s in sources if s.get("relevância") is not None
+        ]
+        avg_relevance = (
+            sum(relevance_scores) / len(relevance_scores) if relevance_scores else 0.5
+        )
+
+        # Ajustar com base na quantidade de fontes (mais fontes = maior confiança)
+        source_factor = min(1.0, len(sources) / self.retriever_k)
+
+        return round(avg_relevance * source_factor, 2)
+
+    def clear_memory(self):
+        """Limpa a memória de conversação"""
+        if self.memory_enabled and self.memory:
+            self.memory.clear()
+            self.logger.info("Memória de conversação limpa")
+            return True
+        return False
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Retorna estatísticas da sessão atual"""
+        self.stats["duration"] = (
+            datetime.now() - datetime.fromisoformat(self.stats["start_time"])
+        ).total_seconds()
+        return self.stats
+
+    def save_session(self, filepath: Optional[str] = None) -> str:
+        """
+        Salva o estado da sessão atual em um arquivo JSON.
+
+        Args:
+            filepath: Caminho para salvar o arquivo (opcional)
+
+        Returns:
+            Caminho do arquivo salvo
+        """
+        if not filepath:
+            os.makedirs("./sessions", exist_ok=True)
+            filepath = f"./sessions/session_{self.session_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
+
+        session_data = {
+            "session_id": self.session_id,
+            "model_name": self.model_name,
+            "temperature": self.temperature,
+            "memory_enabled": self.memory_enabled,
+            "stats": self.get_stats(),
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        try:
+            with open(filepath, "w") as f:
+                json.dump(session_data, f, indent=2)
+            self.logger.info(f"Sessão salva em: {filepath}")
+            return filepath
+        except Exception as e:
+            self.logger.error(f"Erro ao salvar sessão: {str(e)}")
+            return ""
+</file>
+
+<file path="github_rag/data_loader.py">
+import os
+import pandas as pd
+from typing import List, Dict, Optional, Any, Union, Tuple
+from langchain.text_splitter import CharacterTextSplitter
+from langchain_community.document_loaders import TextLoader
+
+from github_rag.github_client import GitHubClient
+
+
+class GitHubDataLoader:
+    """Carregador de dados do GitHub para vectorização"""
+
+    def __init__(self, github_client: GitHubClient):
+        """
+        Inicializa o carregador de dados do GitHub
+
+        Args:
+            github_client: Cliente GitHub autenticado para buscar dados
+        """
+        self.github_client = github_client
+        self.issues_df = None
+        self.code_files = None
+        self.text_splitter = None
+
+    def load_data(
+        self,
+        content_types: List[str],
+        limit_issues: Optional[int] = None,
+        max_files: Optional[int] = None,
+    ) -> None:
+        """
+        Carrega dados do GitHub com base nos tipos de conteúdo especificados
+
+        Args:
+            content_types: Lista de tipos de conteúdo a carregar ('issue', 'code')
+            limit_issues: Limite de issues a buscar
+            max_files: Limite de arquivos de código a buscar
+        """
+        for content_type in content_types:
+            self._load_content_type(content_type, limit_issues, max_files)
+
+    def _load_content_type(
+        self, content_type: str, limit_issues: Optional[int], max_files: Optional[int]
+    ) -> None:
+        """
+        Carrega um tipo específico de conteúdo
+
+        Args:
+            content_type: Tipo de conteúdo ('issue', 'code')
+            limit_issues: Limite de issues a buscar
+            max_files: Limite de arquivos de código a buscar
+        """
+        if content_type == "issue":
+            print("🔍 Buscando issues...")
+            self.issues_df = pd.DataFrame(self.github_client.fetch_issues())
+            print(
+                f"✅ Encontrados {len(self.issues_df) if self.issues_df is not None else 0} issues"
+            )
+
+        elif content_type == "code":
+            print("🔍 Buscando arquivos de código...")
+            self.code_files = self.github_client.fetch_code_files()
+            print(
+                f"✅ Encontrados {len(self.code_files) if self.code_files else 0} arquivos de código"
+            )
+
+        else:
+            print(f"⚠️ Tipo de conteúdo não suportado: {content_type}")
+
+    def configure_text_splitter(
+        self, chunk_size: int = 1000, chunk_overlap: int = 200
+    ) -> None:
+        """
+        Configura o divisor de texto com os parâmetros especificados
+
+        Args:
+            chunk_size: Tamanho de cada chunk de texto
+            chunk_overlap: Quantidade de sobreposição entre chunks
+        """
+        self.text_splitter = CharacterTextSplitter(
+            chunk_size=chunk_size, chunk_overlap=chunk_overlap
+        )
+
+    def create_text_chunks(
+        self, chunk_size: int = 1000, chunk_overlap: int = 200
+    ) -> List[Dict[str, Any]]:
+        """
+        Cria chunks de texto a partir dos dados carregados
+
+        Args:
+            chunk_size: Tamanho de cada chunk de texto
+            chunk_overlap: Quantidade de sobreposição entre chunks
+
+        Returns:
+            Lista de documentos processados com texto e metadados
+        """
+        # Configura o divisor de texto se ainda não estiver configurado
+        if not self.text_splitter:
+            self.configure_text_splitter(chunk_size, chunk_overlap)
+
+        documents = []
+
+        # Processa issues e código apenas se os dados existirem
+        if self.issues_df is not None and not self.issues_df.empty:
+            issue_documents = self._process_issues()
+            documents.extend(issue_documents)
+
+        if self.code_files:
+            code_documents = self._process_code_files()
+            documents.extend(code_documents)
+
+        return documents
+
+    def _process_issues(self) -> List[Dict[str, Any]]:
+        """
+        Processa issues e PRs com seus comentários
+
+        Returns:
+            Lista de documentos baseados em issues/PRs
+        """
+        if not self.text_splitter:
+            self.configure_text_splitter()
+
+        documents = []
+
+        for _, row in self.issues_df.iterrows():
+            # Determina se é issue ou PR e formata o texto adequadamente
+            is_pr = "pull_request" in row
+            item_type = "Pull Request" if is_pr else "Issue"
+            source_type = "pull_request" if is_pr else "issue"
+            item_number = row["number"]
+
+            # Constrói o texto principal
+            item_text = self._build_item_text(row, item_type, item_number)
+
+            # Adiciona comentários, se existirem
+            item_text = self._add_comments_to_text(item_text, row)
+
+            # Divide o texto em chunks e adiciona aos documentos
+            chunks = self.text_splitter.split_text(item_text)
+
+            documents.extend(
+                self._create_documents_from_chunks(
+                    chunks,
+                    source_type,
+                    self._create_item_metadata(row, item_number, item_type),
+                )
+            )
+
+        return documents
+
+    def _build_item_text(self, row: pd.Series, item_type: str, item_number: int) -> str:
+        """
+        Constrói o texto principal de um issue ou PR
+
+        Args:
+            row: Linha do DataFrame com dados do item
+            item_type: Tipo do item ('Issue' ou 'Pull Request')
+            item_number: Número do item
+
+        Returns:
+            Texto formatado do item
+        """
+        item_text = (
+            f"{item_type.upper()} #{item_number}: {row['title']}\n\n{row['body'] or ''}"
+        )
+
+        # Adiciona informações específicas de PR, se aplicável
+        if item_type == "Pull Request":
+            if "additions" in row and "deletions" in row:
+                item_text += f"\nAdições: {row.get('additions', 0)}, Exclusões: {row.get('deletions', 0)}"
+            if "merged" in row:
+                item_text += f"\nStatus de Merge: {'Mesclado' if row.get('merged', False) else 'Não mesclado'}"
+
+        return item_text
+
+    def _add_comments_to_text(self, item_text: str, row: pd.Series) -> str:
+        """
+        Adiciona comentários ao texto do item
+
+        Args:
+            item_text: Texto atual do item
+            row: Linha do DataFrame com dados do item
+
+        Returns:
+            Texto do item com comentários adicionados
+        """
+        comments = row.get("comments_data", [])
+
+        if not comments or len(comments) == 0:
+            return item_text
+
+        item_text += "\n\n--- COMENTÁRIOS ---\n"
+
+        for i, comment in enumerate(comments, 1):
+            user = comment.get("user", "Usuário")
+            body = comment.get("body", "")
+            created_at = comment.get("created_at", "")
+
+            item_text += f"\nCOMENTÁRIO #{i} por {user} em {created_at}:\n{body}\n"
+
+        return item_text
+
+    def _create_item_metadata(
+        self, row: pd.Series, item_number: int, item_type: str
+    ) -> Dict[str, Any]:
+        """
+        Cria metadados para um item (issue ou PR)
+
+        Args:
+            row: Linha do DataFrame com dados do item
+            item_number: Número do item
+            item_type: Tipo do item ('Issue' ou 'Pull Request')
+
+        Returns:
+            Dicionário com metadados
+        """
+        comments = row.get("comments_data", [])
+
+        return {
+            "source": "pull_request" if item_type == "Pull Request" else "issue",
+            "number": item_number,
+            "url": row["html_url"],
+            "title": row["title"],
+            "has_comments": len(comments) > 0,
+            "type": item_type,
+        }
+
+    def _process_code_files(self) -> List[Dict[str, Any]]:
+        """
+        Processa arquivos de código
+
+        Returns:
+            Lista de documentos baseados em arquivos de código
+        """
+        if not self.text_splitter:
+            self.configure_text_splitter()
+
+        documents = []
+
+        for file_info in self.code_files:
+            content = file_info.get("content", "")
+
+            if not content:
+                continue
+
+            # Adiciona informações do arquivo ao conteúdo para melhor contexto
+            enhanced_content = self._enhance_code_content(content, file_info)
+
+            # Divide o texto em chunks
+            chunks = self.text_splitter.split_text(enhanced_content)
+
+            # Cria metadados para o arquivo
+            metadata = {
+                "source": "code",
+                "filename": file_info["name"],
+                "url": file_info["url"],
+                "extension": os.path.splitext(file_info["name"])[1],
+            }
+
+            documents.extend(
+                self._create_documents_from_chunks(chunks, "code", metadata)
+            )
+
+        return documents
+
+    def _enhance_code_content(self, content: str, file_info: Dict[str, Any]) -> str:
+        """
+        Adiciona informações contextuais ao conteúdo do código
+
+        Args:
+            content: Conteúdo do arquivo
+            file_info: Informações sobre o arquivo
+
+        Returns:
+            Conteúdo aprimorado com informações de contexto
+        """
+        filename = file_info["name"]
+        return f"ARQUIVO: {filename}\n\n{content}"
+
+    def _create_documents_from_chunks(
+        self, chunks: List[str], source_type: str, metadata: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """
+        Cria documentos a partir de chunks de texto
+
+        Args:
+            chunks: Lista de chunks de texto
+            source_type: Tipo da fonte ('issue', 'pull_request', 'code')
+            metadata: Metadados a serem incluídos em cada documento
+
+        Returns:
+            Lista de documentos formatados
+        """
+        documents = []
+
+        for i, chunk in enumerate(chunks):
+            # Copia os metadados para não modificar o original
+            chunk_metadata = metadata.copy()
+
+            # Adiciona informações sobre o chunk
+            chunk_metadata["chunk_index"] = i
+            chunk_metadata["total_chunks"] = len(chunks)
+
+            documents.append(
+                {
+                    "text": chunk,
+                    "metadata": chunk_metadata,
+                }
+            )
+
+        return documents
+
+    def get_data_summary(self) -> Dict[str, Any]:
+        """
+        Retorna um resumo dos dados carregados
+
+        Returns:
+            Dicionário com resumo dos dados
+        """
+        summary = {
+            "issues_count": len(self.issues_df) if self.issues_df is not None else 0,
+            "code_files_count": len(self.code_files) if self.code_files else 0,
+        }
+
+        if self.issues_df is not None and not self.issues_df.empty:
+            summary["issue_types"] = {
+                "issues": sum(
+                    1
+                    for _, row in self.issues_df.iterrows()
+                    if "pull_request" not in row
+                ),
+                "pull_requests": sum(
+                    1 for _, row in self.issues_df.iterrows() if "pull_request" in row
+                ),
+            }
+
+        if self.code_files:
+            # Agrupar arquivos por extensão
+            extensions = {}
+            for file in self.code_files:
+                ext = os.path.splitext(file["name"])[1]
+                extensions[ext] = extensions.get(ext, 0) + 1
+
+            summary["file_extensions"] = extensions
+
+        return summary
+</file>
+
+<file path=".gitignore">
+.env
+db/
+github_rag_db/
+chroma_db/
+.github_cache/
+sessions/
+env/
+</file>
+
+<file path="github_rag/utils.py">
+import os
+import uuid
+import logging
+import time
+import re
+from datetime import datetime
+from typing import Optional, Dict, Any, List, Tuple, Union
+from contextlib import contextmanager
+from functools import wraps
+
+# Configuração de logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("github_rag_utils")
+
+
+def setup_environment(
+    env_file: str = ".env",
+    required_keys: List[str] = None,
+    optional_keys: List[str] = None,
+) -> Dict[str, bool]:
+    """
+    Configura variáveis de ambiente a partir do arquivo .env e valida as chaves necessárias.
+
+    Args:
+        env_file: Caminho para o arquivo .env
+        required_keys: Lista de chaves que devem estar presentes
+        optional_keys: Lista de chaves opcionais a verificar
+
+    Returns:
+        Dicionário com o status de cada chave (True se presente, False se ausente)
+    """
+    from dotenv import load_dotenv
+
+    # Valores padrão
+    required_keys = required_keys or [
+        "OPENAI_API_KEY",
+        "GITHUB_API_TOKEN",
+        "MONGODB_URI",
+        "OPENAI_MODEL",
+        "OPENAI_EMBBENDING_MODEL",
+    ]
+    optional_keys = optional_keys or ["LOG_LEVEL"]
+
+    # Carregar variáveis de ambiente
+    if os.path.exists(env_file):
+        load_dotenv(env_file)
+        logger.info(f"Variáveis de ambiente carregadas de {env_file}")
+    else:
+        logger.warning(
+            f"Arquivo {env_file} não encontrado, usando variáveis de ambiente do sistema"
+        )
+
+    # Verificar chaves
+    env_status = {}
+
+    # Verificar chaves obrigatórias
+    for key in required_keys:
+        value = os.getenv(key)
+        env_status[key] = bool(value)
+        if not value:
+            logger.error(f"⚠️ Variável de ambiente obrigatória não encontrada: {key}")
+
+    # Verificar chaves opcionais
+    for key in optional_keys:
+        value = os.getenv(key)
+        env_status[key] = bool(value)
+        if not value:
+            logger.debug(f"Variável de ambiente opcional não encontrada: {key}")
+
+    # Configurar nível de log se especificado
+    if log_level := os.getenv("LOG_LEVEL"):
+        try:
+            numeric_level = getattr(logging, log_level.upper())
+            logging.getLogger().setLevel(numeric_level)
+            logger.info(f"Nível de log definido para {log_level.upper()}")
+        except AttributeError:
+            logger.warning(f"Nível de log inválido: {log_level}")
+
+    return env_status
+
+
+def generate_session_id(
+    prefix: str = "session",
+    use_timestamp: bool = True,
+    include_metadata: Dict[str, str] = None,
+    id_format: str = "standard",  # standard, uuid, short
+) -> str:
+    """
+    Gera um ID de sessão único com opções de formato.
+
+    Args:
+        prefix: Prefixo para o ID da sessão
+        use_timestamp: Se deve incluir timestamp no ID
+        include_metadata: Metadados opcionais para incluir no ID
+        id_format: Formato do ID (standard, uuid, short)
+
+    Returns:
+        ID de sessão formatado
+    """
+    # Componentes base
+    components = [prefix]
+
+    # Adicionar timestamp se solicitado
+    if use_timestamp:
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        components.append(timestamp)
+
+    # Gerar parte aleatória baseada no formato solicitado
+    if id_format == "uuid":
+        random_part = str(uuid.uuid4())
+    elif id_format == "short":
+        random_part = os.urandom(3).hex()
+    else:  # standard
+        random_part = os.urandom(4).hex()
+
+    components.append(random_part)
+
+    # Adicionar metadados se fornecidos
+    if include_metadata:
+        for key, value in include_metadata.items():
+            if value and key:
+                # Garantir que os valores sejam seguros para IDs
+                safe_value = re.sub(r"[^a-zA-Z0-9]", "", value)
+                if safe_value:
+                    components.append(f"{key}-{safe_value}")
+
+    # Juntar componentes
+    return "_".join(components)
+
+
+def parse_mongo_connection(
+    connection_string: Optional[str] = None,
+    db_name: Optional[str] = None,
+    collection_name: Optional[str] = None,
+) -> Dict[str, str]:
+    """
+    Processa e valida string de conexão com MongoDB.
+
+    Args:
+        connection_string: URI de conexão MongoDB (opcional)
+        db_name: Nome do banco de dados (opcional)
+        collection_name: Nome da coleção (opcional)
+
+    Returns:
+        Dicionário com as informações de conexão
+    """
+    # Obter string de conexão
+    conn_str = connection_string or os.getenv("MONGODB_URI")
+
+    if not conn_str:
+        raise ValueError(
+            "String de conexão MongoDB não fornecida e MONGODB_URI não está definida"
+        )
+
+    # Verificar formato da string
+    if not conn_str.startswith(("mongodb://", "mongodb+srv://")):
+        # Adicionar prefixo se estiver faltando
+        conn_str = f"mongodb://{conn_str}"
+
+    # Validar formato básico
+    pattern = r"^mongodb(\+srv)?://([^:]+:[^@]+@)?([^/]+)(/[^?]+)?(\?.*)?$"
+    if not re.match(pattern, conn_str):
+        raise ValueError(f"Formato de string de conexão MongoDB inválido: {conn_str}")
+
+    # Extrair e usar db_name se fornecido
+    if db_name:
+        # Remover database da URI se já estiver presente
+        base_uri = re.sub(r"/[^?/]+(\?|$)", "/", conn_str)
+        conn_str = f"{base_uri.rstrip('/')}/{db_name}"
+
+    return {"uri": conn_str, "db_name": db_name, "collection_name": collection_name}
+
+
+@contextmanager
+def temp_file_handler(content: str, suffix: str = ".tmp") -> str:
+    """
+    Context manager para criação e gestão de arquivos temporários.
+
+    Args:
+        content: Conteúdo a escrever no arquivo
+        suffix: Sufixo para o arquivo temporário
+
+    Yields:
+        Caminho para o arquivo temporário
+    """
+    import tempfile
+
+    temp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    try:
+        with open(temp.name, "w", encoding="utf-8") as f:
+            f.write(content)
+        yield temp.name
+    finally:
+        try:
+            os.unlink(temp.name)
+        except Exception as e:
+            logger.warning(f"Erro ao remover arquivo temporário {temp.name}: {e}")
+
+
+def timing_decorator(func):
+    """
+    Decorador para medir o tempo de execução de funções.
+
+    Args:
+        func: Função a decorar
+
+    Returns:
+        Função decorada que registra tempo de execução
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        duration = end_time - start_time
+        logger.debug(f"Função {func.__name__} executada em {duration:.4f} segundos")
+        return result
+
+    return wrapper
+
+
+def format_repository_log(repo_name: str, action: str, details: Dict[str, Any]) -> str:
+    """
+    Formata logs específicos para operações com repositórios GitHub.
+
+    Args:
+        repo_name: Nome do repositório
+        action: Ação realizada
+        details: Detalhes da operação
+
+    Returns:
+        Mensagem formatada
+    """
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    detail_str = ", ".join(f"{k}={v}" for k, v in details.items())
+    return f"[{timestamp}] [{repo_name}] {action.upper()}: {detail_str}"
+
+
+def get_memory_usage() -> Dict[str, float]:
+    """
+    Obtém estatísticas de uso de memória para o processo atual.
+
+    Returns:
+        Dicionário com informações de uso de memória
+    """
+    import psutil
+    import os
+
+    process = psutil.Process(os.getpid())
+    memory_info = process.memory_info()
+
+    return {
+        "rss_mb": memory_info.rss / (1024 * 1024),  # Resident Set Size em MB
+        "vms_mb": memory_info.vms / (1024 * 1024),  # Virtual Memory Size em MB
+        "percent": process.memory_percent(),
+    }
+
+
+def parse_github_repo_url(url: str) -> Tuple[str, str]:
+    """
+    Extrai o proprietário (owner) e o nome do repositório a partir de uma URL do GitHub.
+
+    Suporta vários formatos de URL:
+    - https://github.com/owner/repo
+    - https://github.com/owner/repo.git
+    - http://github.com/owner/repo
+    - git@github.com:owner/repo.git
+    - github.com/owner/repo
+
+    Args:
+        url: URL do repositório GitHub
+
+    Returns:
+        Tupla (owner, repo_name)
+
+    Raises:
+        ValueError: Se a URL não for válida ou não contiver as informações necessárias
+    """
+    # Remover espaços em branco
+    url = url.strip()
+
+    # Padrão para URLs HTTPS/HTTP
+    https_pattern = (
+        r"(?:https?://)?(?:www\.)?github\.com/([^/]+)/([^/\.]+)(?:\.git)?/?$"
+    )
+
+    # Padrão para URLs SSH
+    ssh_pattern = r"git@github\.com:([^/]+)/([^/\.]+)(?:\.git)?$"
+
+    # Tentar extrair com o padrão HTTPS/HTTP
+    match = re.match(https_pattern, url)
+    if match:
+        owner, repo = match.groups()
+        return owner, repo
+
+    # Tentar extrair com o padrão SSH
+    match = re.match(ssh_pattern, url)
+    if match:
+        owner, repo = match.groups()
+        return owner, repo
+
+    # Se chegamos aqui, a URL não corresponde a nenhum padrão esperado
+    raise ValueError(
+        f"URL de repositório inválida: {url}\n"
+        "Formatos aceitos:\n"
+        "- https://github.com/owner/repo\n"
+        "- github.com/owner/repo\n"
+        "- git@github.com:owner/repo.git"
+    )
+</file>
+
+<file path="github_rag/vector_store.py">
+import os
+from typing import List, Dict, Any, Optional, Union, Tuple
+import numpy as np
+from tqdm.auto import tqdm
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain.schema.retriever import BaseRetriever
+from langchain.schema import Document
+
+
+class VectorStore:
+    """
+    Gerencia a base de vetores para sistemas RAG (Retrieval Augmented Generation).
+    Fornece métodos para criar, carregar, atualizar e consultar bases de dados vetoriais.
+    """
+
+    def __init__(
+        self,
+        embeddings_model: Optional[Any] = None,
+        persist_directory: str = "./github_rag_db",
+        collection_name: str = "github_data",
+    ):
+        """
+        Inicializa o gerenciador de base vetorial.
+
+        Args:
+            embeddings_model: Modelo de embeddings a ser usado (por padrão, OpenAIEmbeddings)
+            persist_directory: Diretório onde a base de vetores será persistida
+            collection_name: Nome da coleção no Chroma DB
+        """
+        self.embeddings = embeddings_model or OpenAIEmbeddings()
+        self.vector_db = None
+        self.persist_directory = persist_directory
+        self.collection_name = collection_name
+
+        # Cria o diretório de persistência, se necessário
+        os.makedirs(persist_directory, exist_ok=True)
+
+    def create_vector_db(
+        self,
+        documents: List[Dict[str, Any]],
+        batch_size: int = 100,
+        show_progress: bool = True,
+    ) -> bool:
+        """
+        Cria base de vetores a partir dos documentos.
+
+        Args:
+            documents: Lista de documentos no formato {"text": texto, "metadata": metadados}
+            batch_size: Tamanho do lote para processamento em batches
+            show_progress: Se deve mostrar barra de progresso
+
+        Returns:
+            True se a base foi criada com sucesso, False caso contrário
+        """
+        if not documents:
+            print("⚠️ Nenhum documento para vetorizar")
+            return False
+
+        try:
+            texts = [doc["text"] for doc in documents]
+            metadatas = [doc["metadata"] for doc in documents]
+
+            print(f"🔢 Criando vetores para {len(texts)} documentos...")
+
+            # Processamento em batches para lidar com grandes volumes de dados
+            if batch_size and len(texts) > batch_size:
+                return self._process_in_batches(
+                    texts, metadatas, batch_size, show_progress
+                )
+
+            # Processamento direto para conjuntos pequenos
+            self.vector_db = Chroma.from_texts(
+                texts=texts,
+                metadatas=metadatas,
+                embedding=self.embeddings,
+                persist_directory=self.persist_directory,
+                collection_name=self.collection_name,
+            )
+
+            # Salva a base explicitamente
+            self.vector_db.persist()
+            print("✅ Base de vetores criada com sucesso")
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao criar base de vetores: {str(e)}")
+            return False
+
+    def _process_in_batches(
+        self,
+        texts: List[str],
+        metadatas: List[Dict[str, Any]],
+        batch_size: int,
+        show_progress: bool,
+    ) -> bool:
+        """
+        Processa documentos em batches para evitar problemas de memória.
+
+        Args:
+            texts: Lista de textos a serem vetorizados
+            metadatas: Lista de metadados correspondentes
+            batch_size: Tamanho de cada batch
+            show_progress: Se deve mostrar barra de progresso
+
+        Returns:
+            True se processado com sucesso, False caso contrário
+        """
+        try:
+            total_batches = (len(texts) + batch_size - 1) // batch_size
+            iterator = range(total_batches)
+
+            if show_progress:
+                iterator = tqdm(iterator, desc="Processando batches")
+
+            # Processar primeiro lote para inicializar a base
+            start_idx = 0
+            end_idx = min(batch_size, len(texts))
+
+            self.vector_db = Chroma.from_texts(
+                texts=texts[start_idx:end_idx],
+                metadatas=metadatas[start_idx:end_idx],
+                embedding=self.embeddings,
+                persist_directory=self.persist_directory,
+                collection_name=self.collection_name,
+            )
+
+            # Processar lotes restantes
+            for i in iterator:
+                if i == 0:  # Já processamos o primeiro lote
+                    continue
+
+                start_idx = i * batch_size
+                end_idx = min(start_idx + batch_size, len(texts))
+
+                # Adicionar documentos ao Chroma DB existente
+                self.vector_db.add_texts(
+                    texts=texts[start_idx:end_idx],
+                    metadatas=metadatas[start_idx:end_idx],
+                )
+
+                # Persistir após cada lote para evitar perda de dados
+                if i % 5 == 0 or i == total_batches - 1:
+                    self.vector_db.persist()
+
+            print(f"✅ {len(texts)} documentos processados em {total_batches} batches")
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao processar em batches: {str(e)}")
+            return False
+
+    def load_vector_db(self, persist_directory: Optional[str] = None) -> bool:
+        """
+        Carrega uma base de vetores existente.
+
+        Args:
+            persist_directory: Diretório onde a base está armazenada (usa o da instância se None)
+
+        Returns:
+            True se carregada com sucesso, False caso contrário
+        """
+        directory = persist_directory or self.persist_directory
+
+        if not os.path.exists(directory):
+            print(f"⚠️ Diretório {directory} não existe")
+            return False
+
+        try:
+            print(f"📂 Carregando base de vetores de {directory}...")
+            self.vector_db = Chroma(
+                persist_directory=directory,
+                embedding_function=self.embeddings,
+                collection_name=self.collection_name,
+            )
+
+            collection_size = self.vector_db._collection.count()
+            print(
+                f"✅ Base carregada com sucesso. Contém {collection_size} documentos."
+            )
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao carregar base de vetores: {str(e)}")
+            return False
+
+    def add_documents(
+        self, documents: List[Dict[str, Any]], batch_size: int = 100
+    ) -> bool:
+        """
+        Adiciona novos documentos à base de vetores existente.
+
+        Args:
+            documents: Lista de documentos no formato {"text": texto, "metadata": metadados}
+            batch_size: Tamanho do lote para processamento em batches
+
+        Returns:
+            True se documentos foram adicionados com sucesso, False caso contrário
+        """
+        if not documents:
+            print("⚠️ Nenhum documento para adicionar")
+            return False
+
+        if self.vector_db is None:
+            print("⚠️ Vector database não foi inicializado. Criando novo...")
+            return self.create_vector_db(documents, batch_size)
+
+        try:
+            texts = [doc["text"] for doc in documents]
+            metadatas = [doc["metadata"] for doc in documents]
+
+            print(f"➕ Adicionando {len(texts)} novos documentos à base...")
+
+            # Processamento em batches
+            if len(texts) > batch_size:
+                total_batches = (len(texts) + batch_size - 1) // batch_size
+
+                for i in tqdm(range(total_batches), desc="Adicionando em batches"):
+                    start_idx = i * batch_size
+                    end_idx = min(start_idx + batch_size, len(texts))
+
+                    self.vector_db.add_texts(
+                        texts=texts[start_idx:end_idx],
+                        metadatas=metadatas[start_idx:end_idx],
+                    )
+
+                    # Persistir periodicamente
+                    if i % 5 == 0 or i == total_batches - 1:
+                        self.vector_db.persist()
+            else:
+                # Adicionar diretamente para conjuntos pequenos
+                self.vector_db.add_texts(texts=texts, metadatas=metadatas)
+                self.vector_db.persist()
+
+            print(f"✅ {len(texts)} documentos adicionados com sucesso")
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao adicionar documentos: {str(e)}")
+            return False
+
+    def get_retriever(
+        self,
+        search_kwargs: Optional[Dict[str, Any]] = None,
+        search_type: str = "mmr",
+        filter: Optional[Dict[str, Any]] = None,
+    ) -> BaseRetriever:
+        """
+        Obtém o retriever da base de vetores com configurações personalizadas.
+
+        Args:
+            search_kwargs: Argumentos de pesquisa para o retriever
+                - Para MMR:
+                    - k: Número de documentos a retornar (padrão: 7)
+                    - fetch_k: Número de documentos a recuperar inicialmente (padrão: 20)
+                    - lambda_mult: Balanço entre relevância e diversidade (0-1, padrão: 0.7)
+                    Valores próximos a 1 priorizam relevância, próximos a 0 priorizam diversidade
+                - Para similarity:
+                    - k: Número de documentos a retornar
+                    - score_threshold: Limiar mínimo de similaridade (0-1)
+
+            search_type: Tipo de busca a ser realizada
+                - "mmr": Maximum Marginal Relevance (equilibra relevância e diversidade)
+                - "similarity": Busca por similaridade simples (mais rápida)
+                - "similarity_score_threshold": Busca com limiar de pontuação
+
+            filter: Filtro de metadados para restringir a busca
+                Exemplo: {"source": "github", "type": "issue"}
+
+        Returns:
+            Um objeto retriever configurado
+
+        Raises:
+            ValueError: Se a base de vetores não foi inicializada
+        """
+        if self.vector_db is None:
+            raise ValueError(
+                "Vector database não foi inicializado. Use create_vector_db ou load_vector_db primeiro."
+            )
+
+        # Configurações padrão otimizadas para cada tipo de busca
+        if search_type == "mmr":
+            default_search_kwargs = {
+                "k": 10,
+                "fetch_k": 30,  # Busca um conjunto maior para aplicar diversificação
+                "lambda_mult": 0.7,  # Equilibrio entre relevância (1.0) e diversidade (0.0)
+            }
+        elif search_type == "similarity_score_threshold":
+            default_search_kwargs = {
+                "k": 10,
+                "score_threshold": 0.75,  # Limiar mínimo de similaridade
+            }
+        else:  # similarity padrão
+            default_search_kwargs = {"k": 7}
+
+        # Atualiza com argumentos fornecidos pelo usuário
+        if search_kwargs:
+            default_search_kwargs.update(search_kwargs)
+
+        # Adiciona filtro se especificado
+        if filter:
+            default_search_kwargs["filter"] = filter
+
+        return self.vector_db.as_retriever(
+            search_type=search_type,
+            search_kwargs=default_search_kwargs,
+        )
+
+    def query(
+        self,
+        query_text: str,
+        limit: int = 5,
+        fetch_k: int = 20,
+        include_text: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """
+        Realiza uma consulta direta na base de vetores.
+
+        Args:
+            query_text: Texto da consulta
+            limit: Número máximo de resultados a retornar
+            fetch_k: Número de resultados a buscar antes de aplicar MMR
+            include_text: Se deve incluir o texto completo nos resultados
+
+        Returns:
+            Lista de documentos similares com seus metadados e scores
+
+        Raises:
+            ValueError: Se a base de vetores não foi inicializada
+        """
+        if self.vector_db is None:
+            raise ValueError(
+                "Vector database não foi inicializado. Use create_vector_db ou load_vector_db primeiro."
+            )
+
+        try:
+            # Usa MMR (Maximum Marginal Relevance) para diversidade nos resultados
+            results = self.vector_db.similarity_search_with_score(
+                query=query_text, k=limit, fetch_k=fetch_k
+            )
+
+            # Formata os resultados
+            formatted_results = []
+            for doc, score in results:
+                result = {"metadata": doc.metadata, "score": float(score)}
+
+                if include_text:
+                    result["text"] = doc.page_content
+
+                formatted_results.append(result)
+
+            return formatted_results
+
+        except Exception as e:
+            print(f"❌ Erro ao consultar base de vetores: {str(e)}")
+            return []
+
+    def delete_collection(self) -> bool:
+        """
+        Exclui toda a coleção do Chroma DB.
+
+        Returns:
+            True se excluída com sucesso, False caso contrário
+        """
+        if self.vector_db is None:
+            print("⚠️ Nenhuma base de vetores inicializada para excluir")
+            return False
+
+        try:
+            print(f"🗑️ Excluindo coleção {self.collection_name}...")
+            self.vector_db._collection.delete(include_metadatas=True)
+            print("✅ Coleção excluída com sucesso")
+
+            # Limpa o objeto vector_db
+            self.vector_db = None
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao excluir coleção: {str(e)}")
+            return False
+
+    def get_stats(self) -> Dict[str, Any]:
+        """
+        Retorna estatísticas sobre a base de vetores.
+
+        Returns:
+            Dicionário com estatísticas da base
+        """
+        if self.vector_db is None:
+            return {"status": "não inicializada"}
+
+        try:
+            collection_size = self.vector_db._collection.count()
+
+            # Obter metadados distintos para estatísticas
+            metadata_keys = set()
+            all_metadatas = self.vector_db._collection.get()["metadatas"]
+
+            for metadata in all_metadatas:
+                metadata_keys.update(metadata.keys())
+
+            # Contar tipos de documentos, se houver campo "source"
+            source_types = {}
+            if all_metadatas and "source" in all_metadatas[0]:
+                for metadata in all_metadatas:
+                    source = metadata.get("source", "unknown")
+                    source_types[source] = source_types.get(source, 0) + 1
+
+            return {
+                "status": "inicializada",
+                "caminho": self.persist_directory,
+                "coleção": self.collection_name,
+                "total_documentos": collection_size,
+                "campos_metadados": list(metadata_keys),
+                "tipos_fonte": source_types if source_types else None,
+            }
+
+        except Exception as e:
+            return {"status": "erro", "mensagem": str(e)}
+</file>
+
+<file path="github_rag/rag_tool.py">
+import os
+from typing import List, Optional, Dict, Any, Union, Tuple, Callable
+import json
+import time
+from datetime import datetime
+
+from github_rag.github_client import GitHubClient
+from github_rag.data_loader import GitHubDataLoader
+from github_rag.vector_store import VectorStore
+from github_rag.conversation import ConversationManager
+from github_rag.utils import generate_session_id
+
+
+class GitHubRagTool:
+    """
+    Ferramenta RAG para GitHub com capacidades avançadas de memória e recuperação.
+
+    Esta classe coordena todos os componentes para criar um sistema RAG
+    baseado em repositórios do GitHub, permitindo consultas em linguagem natural
+    sobre issues, pull requests e código fonte com contexto enriquecido.
+    """
+
+    def __init__(
+        self,
+        repo_url: str,
+        content_types: List[str] = ["code", "issue"],
+        custom_model: str = "gpt-3.5-turbo",
+        session_id: Optional[str] = None,
+        temperature: float = 0.7,
+        persist_directory: str = "./github_rag_db",
+        embeddings_model: Optional[Any] = None,
+    ):
+        """
+        Inicializa a ferramenta RAG para GitHub.
+
+        Args:
+            repo_url: URL do repositório GitHub
+            content_types: Tipos de conteúdo para indexar ("code", "issue")
+            custom_model: Modelo LLM a ser usado
+            session_id: ID de sessão para persistência de memória
+            temperature: Temperatura para o modelo LLM
+            persist_directory: Diretório para persistir a base de vetores
+            embeddings_model: Modelo de embeddings personalizado (opcional)
+        """
+        self.repo_url = repo_url
+        self.content_types = content_types
+        self.model_name = custom_model
+        self.session_id = session_id or generate_session_id()
+        self.temperature = temperature
+        self.persist_directory = persist_directory
+
+        # Status de inicialização dos componentes
+        self.is_data_loaded = False
+        self.is_vectordb_ready = False
+        self.is_conversation_ready = False
+
+        # Configurações avançadas com valores padrão
+        self.config = {
+            "chunk_size": 1000,
+            "chunk_overlap": 200,
+            "retriever_k": 7,
+            "retriever_fetch_k": 30,
+            "retriever_search_type": "mmr",
+            "use_memory": True,
+            "memory_window": 10,
+            "max_tokens": 60_000,
+            "lambda_mult": 0.7,
+        }
+
+        # Inicializar componentes básicos
+        self.github_client = GitHubClient(
+            repo_url, token=os.environ.get("GITHUB_API_TOKEN")
+        )
+        self.data_loader = GitHubDataLoader(self.github_client)
+        self.vector_store = VectorStore(
+            embeddings_model=embeddings_model,
+            persist_directory=persist_directory,
+            collection_name=f"github_{self._get_repo_name()}",
+        )
+        self.conversation_manager = None
+
+        # Métricas e estatísticas
+        self.stats = {
+            "queries_count": 0,
+            "tokens_used": 0,
+            "last_query_time": None,
+            "avg_response_time": 0,
+            "total_response_time": 0,
+        }
+
+        print(f"🚀 GitHubRagTool inicializado para {repo_url}")
+        print(f"📂 Tipos de conteúdo: {', '.join(content_types)}")
+        print(f"🧠 Modelo: {custom_model}")
+        print(f"🔑 Sessão: {self.session_id}")
+
+    def _get_repo_name(self) -> str:
+        """Extrai o nome do repositório da URL"""
+        parts = self.repo_url.rstrip("/").split("/")
+        if len(parts) >= 2:
+            return f"{parts[-2]}_{parts[-1]}"
+        return "unknown_repo"
+
+    def configure(self, config_options: Dict[str, Any]) -> None:
+        """
+        Configura opções avançadas da ferramenta.
+
+        Args:
+            config_options: Dicionário com opções de configuração
+        """
+        self.config.update(config_options)
+        print(f"⚙️ Configurações atualizadas: {json.dumps(self.config, indent=2)}")
+
+        # Atualizar componentes afetados pelas novas configurações
+        if self.conversation_manager and "use_memory" in config_options:
+            self.conversation_manager.set_memory_enabled(self.config["use_memory"])
+
+        if self.conversation_manager and "memory_window" in config_options:
+            self.conversation_manager.set_memory_window(self.config["memory_window"])
+
+    def build_knowledge_base(
+        self,
+        limit_issues: Optional[int] = None,
+        max_files: Optional[int] = None,
+        rebuild: bool = False,
+        chunk_size: Optional[int] = None,
+        chunk_overlap: Optional[int] = None,
+    ) -> bool:
+        """
+        Constrói a base de conhecimento a partir do repositório GitHub.
+
+        Args:
+            limit_issues: Limite de issues a carregar (None para todos)
+            max_files: Limite de arquivos a carregar (None para todos)
+            rebuild: Se deve reconstruir a base mesmo se já existir
+            chunk_size: Tamanho de cada chunk (sobrescreve config)
+            chunk_overlap: Sobreposição entre chunks (sobrescreve config)
+
+        Returns:
+            True se a construção foi bem-sucedida, False caso contrário
+        """
+        start_time = time.time()
+
+        # Verificar se já existe uma base que pode ser carregada
+        db_exists = os.path.exists(self.persist_directory) and os.listdir(
+            self.persist_directory
+        )
+
+        if db_exists and not rebuild:
+            print(
+                f"📁 Base de conhecimento existente encontrada em {self.persist_directory}"
+            )
+            success = self._load_existing_knowledge_base()
+            if success:
+                return True
+            print("⚠️ Falha ao carregar base existente. Reconstruindo...")
+
+        # Atualizar configurações locais se fornecidas
+        if chunk_size:
+            self.config["chunk_size"] = chunk_size
+        if chunk_overlap:
+            self.config["chunk_overlap"] = chunk_overlap
+
+        try:
+            # Carregar dados
+            print(f"📥 Carregando dados do repositório {self.repo_url}...")
+            self.data_loader.load_data(
+                content_types=self.content_types,
+                limit_issues=limit_issues,
+                max_files=max_files,
+            )
+            self.is_data_loaded = True
+
+            # Obter estatísticas dos dados carregados
+            data_summary = self.data_loader.get_data_summary()
+            print(f"📊 Dados carregados: {json.dumps(data_summary, indent=2)}")
+
+            # Criar chunks com as configurações especificadas
+            print(
+                f"✂️ Criando chunks (tamanho={self.config['chunk_size']}, sobreposição={self.config['chunk_overlap']})..."
+            )
+            documents = self.data_loader.create_text_chunks(
+                chunk_size=self.config["chunk_size"],
+                chunk_overlap=self.config["chunk_overlap"],
+            )
+
+            if not documents:
+                print("⚠️ Nenhum documento foi processado")
+                return False
+
+            print(f"📄 {len(documents)} chunks criados")
+
+            # Construir a base de vetores
+            print("🔢 Vetorizando documentos...")
+            success = self.vector_store.create_vector_db(
+                documents=documents, show_progress=True
+            )
+
+            if not success:
+                print("❌ Falha ao criar base de vetores")
+                return False
+
+            self.is_vectordb_ready = True
+
+            # Configurar o gerenciador de conversas
+            self._setup_conversation_manager()
+
+            elapsed_time = time.time() - start_time
+            print(
+                f"✅ Base de conhecimento construída com sucesso em {elapsed_time:.2f} segundos"
+            )
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao construir base de conhecimento: {str(e)}")
+            return False
+
+    def _load_existing_knowledge_base(self) -> bool:
+        """
+        Carrega uma base de conhecimento existente.
+
+        Returns:
+            True se carregada com sucesso, False caso contrário
+        """
+        try:
+            # Tentar carregar a base vetorial
+            success = self.vector_store.load_vector_db()
+
+            if not success:
+                return False
+
+            self.is_vectordb_ready = True
+
+            # Configurar gerenciador de conversas
+            self._setup_conversation_manager()
+
+            print("✅ Base de conhecimento carregada com sucesso")
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao carregar base existente: {str(e)}")
+            return False
+
+    def _setup_conversation_manager(self) -> None:
+        """Configura o gerenciador de conversas com base nas configurações atuais"""
+        # Configurar o retriever com as configurações atuais
+        retriever = self.vector_store.get_retriever(
+            search_kwargs={
+                "k": self.config["retriever_k"],
+                "fetch_k": self.config["retriever_fetch_k"],
+            }
+        )
+
+        # Criar o gerenciador de conversas
+        self.conversation_manager = ConversationManager(
+            retriever=retriever,
+            model_name=self.model_name,
+            session_id=self.session_id,
+            temperature=self.temperature,
+            memory_enabled=self.config["use_memory"],
+            memory_window=self.config["memory_window"],
+        )
+
+        self.is_conversation_ready = True
+
+    def query(
+        self,
+        question: str,
+        stream: bool = False,
+        callback: Optional[Callable[[str], None]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Realiza uma consulta ao sistema RAG.
+
+        Args:
+            question: Pergunta em linguagem natural
+            stream: Se deve transmitir a resposta incrementalmente
+            callback: Função de callback para streaming (recebe chunks de texto)
+
+        Returns:
+            Dicionário com resposta, fontes e metadados
+
+        Raises:
+            ValueError: Se a base de conhecimento não estiver pronta
+        """
+        if not self.is_conversation_ready:
+            raise ValueError(
+                "Base de conhecimento não está pronta. Execute build_knowledge_base() primeiro."
+            )
+
+        # Registrar métricas
+        query_start_time = time.time()
+        self.stats["queries_count"] += 1
+        self.stats["last_query_time"] = datetime.now().isoformat()
+
+        try:
+            # Executar a consulta
+            if stream and callback:
+                result = self.conversation_manager.query_with_streaming(
+                    question, callback
+                )
+            else:
+                result = self.conversation_manager.query(question)
+
+            # Processar o resultado para adicionar metadados
+            processed_result = self._process_query_result(result)
+
+            # Atualizar métricas
+            query_time = time.time() - query_start_time
+            self.stats["total_response_time"] += query_time
+            self.stats["avg_response_time"] = (
+                self.stats["total_response_time"] / self.stats["queries_count"]
+            )
+
+            # Adicionar tempo de resposta ao resultado
+            processed_result["metrics"] = {
+                "response_time_seconds": query_time,
+                "query_index": self.stats["queries_count"],
+            }
+
+            return processed_result
+
+        except Exception as e:
+            error_result = {
+                "answer": f"Erro ao processar a consulta: {str(e)}",
+                "sources": [],
+                "success": False,
+                "error": str(e),
+            }
+            return error_result
+
+    def _process_query_result(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Processa o resultado da consulta para adicionar informações úteis.
+
+        Args:
+            result: Resultado original da consulta
+
+        Returns:
+            Resultado processado com metadados adicionais
+        """
+        # Começamos com o resultado original
+        processed = result.copy()
+
+        # Adicionar flag de sucesso
+        processed["success"] = True
+
+        # Adicionar sessão e timestamp
+        processed["session_id"] = self.session_id
+        processed["timestamp"] = datetime.now().isoformat()
+
+        # Processar fontes para destacar os trechos mais relevantes
+        if "sources" in processed and processed["sources"]:
+            for i, source in enumerate(processed["sources"]):
+                # Limitar o tamanho do texto da fonte para economizar espaço
+                if "content" in source and len(source["content"]) > 500:
+                    source["content_preview"] = source["content"][:500] + "..."
+
+                # Adicionar índice da fonte para referência mais fácil
+                source["index"] = i + 1
+
+        return processed
+
+    def search_sources(
+        self, query: str, limit: int = 5, include_content: bool = True
+    ) -> List[Dict[str, Any]]:
+        """
+        Busca fontes diretamente sem gerar resposta via LLM.
+
+        Args:
+            query: Texto da consulta
+            limit: Número máximo de resultados
+            include_content: Se deve incluir o conteúdo completo
+
+        Returns:
+            Lista de fontes relevantes com seus metadados
+
+        Raises:
+            ValueError: Se a base de conhecimento não estiver pronta
+        """
+        if not self.is_vectordb_ready:
+            raise ValueError(
+                "Base de conhecimento não está pronta. Execute build_knowledge_base() primeiro."
+            )
+
+        try:
+            # Buscar diretamente na base vetorial
+            search_results = self.vector_store.query(
+                query_text=query, limit=limit, include_text=include_content
+            )
+
+            # Processar resultados para um formato mais amigável
+            processed_results = []
+            for i, result in enumerate(search_results):
+                processed = {
+                    "index": i + 1,
+                    "score": result["score"],
+                    "metadata": result["metadata"],
+                }
+
+                if include_content and "text" in result:
+                    processed["content"] = result["text"]
+
+                processed_results.append(processed)
+
+            return processed_results
+
+        except Exception as e:
+            print(f"❌ Erro ao buscar fontes: {str(e)}")
+            return []
+
+    def add_more_content(
+        self,
+        content_types: List[str],
+        limit_issues: Optional[int] = None,
+        max_files: Optional[int] = None,
+    ) -> bool:
+        """
+        Adiciona mais conteúdo à base de conhecimento existente.
+
+        Args:
+            content_types: Tipos de conteúdo a adicionar
+            limit_issues: Limite de issues a carregar
+            max_files: Limite de arquivos a carregar
+
+        Returns:
+            True se o conteúdo foi adicionado com sucesso, False caso contrário
+
+        Raises:
+            ValueError: Se a base de conhecimento não estiver inicializada
+        """
+        if not self.is_vectordb_ready:
+            raise ValueError(
+                "Base de conhecimento não está inicializada. Execute build_knowledge_base() primeiro."
+            )
+
+        try:
+            # Carregar apenas os novos tipos de conteúdo
+            print(f"📥 Carregando conteúdo adicional: {', '.join(content_types)}...")
+            self.data_loader.load_data(
+                content_types=content_types,
+                limit_issues=limit_issues,
+                max_files=max_files,
+            )
+
+            # Criar chunks com as configurações atuais
+            documents = self.data_loader.create_text_chunks(
+                chunk_size=self.config["chunk_size"],
+                chunk_overlap=self.config["chunk_overlap"],
+            )
+
+            if not documents:
+                print("⚠️ Nenhum documento adicional foi processado")
+                return False
+
+            print(f"📄 {len(documents)} chunks adicionais criados")
+
+            # Adicionar à base vetorial existente
+            success = self.vector_store.add_documents(documents=documents)
+
+            if not success:
+                print("❌ Falha ao adicionar novos documentos à base")
+                return False
+
+            print(
+                f"✅ {len(documents)} documentos adicionados com sucesso à base existente"
+            )
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao adicionar conteúdo: {str(e)}")
+            return False
+
+    def reset(self, delete_db: bool = False) -> bool:
+        """
+        Reseta o estado da ferramenta, opcionalmente excluindo a base de dados.
+
+        Args:
+            delete_db: Se deve excluir fisicamente a base de dados vetorial
+
+        Returns:
+            True se o reset foi bem-sucedido, False caso contrário
+        """
+        try:
+            # Resetar estado interno
+            self.is_data_loaded = False
+            self.is_vectordb_ready = False
+            self.is_conversation_ready = False
+            self.conversation_manager = None
+
+            # Resetar estatísticas
+            self.stats = {
+                "queries_count": 0,
+                "tokens_used": 0,
+                "last_query_time": None,
+                "avg_response_time": 0,
+                "total_response_time": 0,
+            }
+
+            # Excluir base de dados se solicitado
+            if delete_db and self.vector_store:
+                success = self.vector_store.delete_collection()
+                if not success:
+                    print("⚠️ Aviso: Falha ao excluir a coleção vetorial")
+
+            print("🔄 Estado da ferramenta resetado com sucesso")
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao resetar: {str(e)}")
+            return False
+
+    def save_session(self, directory: Optional[str] = None) -> bool:
+        """
+        Salva o estado da sessão atual para uso futuro.
+
+        Args:
+            directory: Diretório onde salvar os dados da sessão
+
+        Returns:
+            True se a sessão foi salva com sucesso, False caso contrário
+        """
+        save_dir = directory or f"./sessions/{self.session_id}"
+        os.makedirs(save_dir, exist_ok=True)
+
+        try:
+            # Salvar metadados e configurações
+            metadata = {
+                "session_id": self.session_id,
+                "repo_url": self.repo_url,
+                "model_name": self.model_name,
+                "content_types": self.content_types,
+                "config": self.config,
+                "stats": self.stats,
+                "created_at": datetime.now().isoformat(),
+            }
+
+            with open(f"{save_dir}/metadata.json", "w") as f:
+                json.dump(metadata, f, indent=2)
+
+            # Salvar histórico de conversas se disponível
+            if self.conversation_manager and hasattr(
+                self.conversation_manager, "get_history"
+            ):
+                history = self.conversation_manager.get_history()
+
+                with open(f"{save_dir}/conversation_history.json", "w") as f:
+                    json.dump(history, f, indent=2)
+
+            print(f"💾 Sessão salva em {save_dir}")
+            return True
+
+        except Exception as e:
+            print(f"❌ Erro ao salvar sessão: {str(e)}")
+            return False
+
+    def get_status(self) -> Dict[str, Any]:
+        """
+        Retorna o status atual da ferramenta.
+
+        Returns:
+            Dicionário com informações de status
+        """
+        vector_db_stats = (
+            self.vector_store.get_stats() if self.is_vectordb_ready else None
+        )
+
+        status = {
+            "session_id": self.session_id,
+            "repo_url": self.repo_url,
+            "model_name": self.model_name,
+            "content_types": self.content_types,
+            "is_data_loaded": self.is_data_loaded,
+            "is_vectordb_ready": self.is_vectordb_ready,
+            "is_conversation_ready": self.is_conversation_ready,
+            "config": self.config,
+            "stats": self.stats,
+            "vector_db": vector_db_stats,
+        }
+
+        return status
+</file>
+
+<file path="README.md">
+# GitHub RAG Tool
+
+![GitHub stars](https://img.shields.io/badge/GitHub-RAG-blue)
+![Python](https://img.shields.io/badge/Python-3.12.9%2B-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
+## 🚀 Visão Geral
+
+O GitHub RAG Tool é um projeto dedicado à criação de agentes inteligentes capazes de dialogar com repositórios do GitHub. Utilizando técnicas avançadas de RAG (Retrieval-Augmented Generation), a ferramenta permite que usuários façam perguntas sobre qualquer repositório e obtenham respostas contextualizadas, baseadas no código fonte, issues e pull requests.
+
+## ✨ Funcionalidades
+
+- **Análise Inteligente**: Extrai e indexa informações de repositórios GitHub
+- **Resposta Contextual**: Fornece respostas precisas com base no conteúdo do repositório
+- **Memória de Conversação**: Mantém o contexto durante toda a interação
+- **Rastreabilidade**: Todas as respostas vêm com referências às fontes originais
+- **Flexibilidade**: Funciona com qualquer repositório público do GitHub
+- **Persistência**: Salva sessões para uso futuro
+
+## 🔧 Requisitos
+
+- Python 3.12.9+
+- Chaves de API para serviços de LLM (OpenAI, etc)
+- Acesso à internet para conexão com GitHub
+- Token de uso da API do GitHub
+
+## 📦 Instalação
+
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/seu-usuario/github-rag-tool.git
+   cd github-rag-tool
+   ```
+
+2. Instale as dependências:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Configure o arquivo `.env` com suas credenciais:
+   ```
+   OPENAI_API_KEY=<sua_chave_openai>
+   OPENAI_MODEL=gpt-4o-mini
+   OPENAI_EMBBENDING_MODEL=text-embedding-3-large
+   GITHUB_API_TOKEN=<seu_token_github>
+   ```
+
+## 🛠️ Tecnologias Utilizadas
+
+O projeto utiliza um conjunto de tecnologias modernas para processamento de linguagem natural e recuperação de informações:
+
+- **LangChain**: Framework para construção de aplicações com modelos de linguagem
+- **FAISS**: Biblioteca para busca de similaridade eficiente em grandes bases de dados vetoriais
+- **OpenAI API**: Fornece modelos como GPT-4o para geração de texto e embeddings
+- **GitHub API**: Permite acessar repositórios, issues e pull requests programaticamente
+- **Chroma DB**: Banco de dados vetorial para armazenamento de embeddings
+- **Python asyncio**: Para processamento assíncrono e melhor desempenho
+- **PyTorch**: Base para processamento de modelos de ML (utilizado indiretamente)
+
+## 🔍 Como Usar
+
+### Uso Básico
+
+Execute o script sem argumentos e forneça a URL quando solicitado:
+
+```bash
+python main.py
+```
+
+### Fluxo de Trabalho
+
+1. **Inicialização**: A ferramenta inicializa e configura a sessão RAG
+2. **Construção da Base de Conhecimento**: O repositório é analisado e indexado
+3. **Interação**: Faça perguntas sobre o repositório e receba respostas contextualizadas
+4. **Salvamento**: A sessão é automaticamente salva para uso futuro
+
+## ⚙️ Configurações Avançadas
+
+A ferramenta suporta várias configurações para personalizar o comportamento:
+
+```python
+config_options = {
+    "chunk_size": 1200,       # Tamanho dos trechos de texto para indexação
+    "chunk_overlap": 300,     # Sobreposição entre trechos para manter contexto
+    "retriever_k": 7,         # Número de documentos recuperados por consulta
+    "use_memory": True,       # Habilitar memória de conversação
+    "memory_window": 5,       # Tamanho da janela de memória
+}
+```
+
+## 🔄 Workflow Interno
+
+1. **Extração**: Código, issues e PRs são baixados do repositório
+2. **Processamento**: O conteúdo é dividido em chunks significativos
+3. **Indexação**: Embeddings são gerados para busca semântica
+4. **Recuperação**: Quando uma pergunta é feita, recuperam-se os trechos mais relevantes
+5. **Geração**: Um LLM usa os trechos recuperados para produzir respostas precisas
+6. **Apresentação**: A resposta é exibida junto com as fontes consultadas
+
+## 📊 Saída de Exemplo
+
+```
+🚀 Iniciando sessão com o repositório: https://github.com/huggingface/lerobot
+
+🔧 Inicializando a ferramenta RAG...
+
+⚙️ Configurações aplicadas: {
+  "chunk_size": 1200,
+  "chunk_overlap": 300,
+  "retriever_k": 7,
+  "use_memory": true,
+  "memory_window": 5
+}
+
+🔍 Construindo base de conhecimento...
+
+✅ Preparação concluída em 45.23 segundos
+
+📊 Status da Ferramenta:
+- Sessão: session_20250313224434_28d3d4c5
+- Modelo de Chat: gpt-4o-mini
+- Modelo de Embedding: text-embedding-3-large
+- Base vetorial pronta: True
+- Documentos indexados: 1724
+
+💬 Modo de consulta ativado para o repositório lerobot
+Digite 'sair' para encerrar, 'status' para ver estatísticas, ou 'ajuda' para comandos adicionais
+
+> Qual é o propósito do LeRobot?
+
+🤖 LeRobot visa tornar a IA para robótica mais acessível através da aprendizagem de ponta a ponta. O projeto fornece modelos pré-treinados, datasets e ferramentas para robótica no mundo real usando PyTorch. Seu objetivo é reduzir a barreira de entrada para a robótica, permitindo que todos possam contribuir e se beneficiar do compartilhamento de datasets e modelos pré-treinados.
+
+📚 Fontes:
+[1] Arquivo: README.md
+    Linguagem: Markdown
+[2] Issue #42: Roadmap para implementação de novos ambientes
+    URL: https://github.com/huggingface/lerobot/issues/42
+```
+
+## 📈 Gerenciamento de Rate Limits
+
+O sistema implementa estratégias inteligentes para lidar com limites de taxa (rate limits) da API OpenAI e GitHub:
+
+- **Retry com backoff exponencial**: Espera progressivamente mais tempo entre tentativas
+- **Agrupamento de requisições**: Otimiza o número de chamadas à API
+- **Caching de resultados**: Evita requisições redundantes
+- **Monitoramento de uso**: Acompanha o consumo de tokens para evitar custos excessivos
+
+## 🔬 Modelos Suportados
+
+A ferramenta é compatível com diversos modelos de linguagem e embeddings:
+
+- **Modelos de Chat**:
+  - OpenAI: GPT-4o, GPT-4-Turbo, GPT-3.5-Turbo
+  <!-- - Anthropic: Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
+  - Mistral: Mistral Large, Mistral Medium -->
+  
+- **Modelos de Embedding**:
+  - OpenAI: text-embedding-3-large, text-embedding-3-small, text-embedding-ada-002
+  <!-- - Hugging Face: sentence-transformers (via API ou localmente)
+  - BAAI: bge-large-en -->
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Para contribuir:
+
+1. Faça um fork do repositório
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está licenciado sob a licença MIT - veja o arquivo LICENSE para detalhes.
+</file>
+
+<file path="github_rag/github_client.py">
+import os
+import time
+import json
+import hashlib
+import requests
+from typing import Dict, List, Optional, Tuple, Any, Union
+from datetime import datetime
+import logging
+
+from github_rag.utils import parse_github_repo_url
+
+
+class GitHubClient:
+    """
+    Cliente para interação com a API do GitHub com tratamento avançado de limites de taxa,
+    cache de requisições e backoff exponencial.
+
+    Otimizado para repositórios de robótica como o LeRobot (https://github.com/huggingface/lerobot),
+    fornecendo métodos específicos para análise de issues, PRs e código-fonte.
+    """
+
+    def __init__(
+        self,
+        repo_url: str,
+        token: Optional[str] = None,
+        use_cache: bool = True,
+        cache_dir: str = ".github_cache",
+        cache_ttl: int = 86400,  # 24 horas em segundos
+        log_level: int = logging.INFO,
+    ):
+        self.repo_url = repo_url
+        self.owner, self.repo = parse_github_repo_url(repo_url)
+        self.base_url = "https://api.github.com"
+        self.headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "requests",
+        }
+
+        # Configuração de autenticação
+        if token:
+            self.headers["Authorization"] = f"token {token}"
+        else:
+            print(
+                "⚠️ Operando sem token de autenticação. Limites de taxa serão mais restritivos."
+            )
+
+        # Configuração de cache
+        self.use_cache = use_cache
+        self.cache_dir = cache_dir
+        self.cache_ttl = cache_ttl
+
+        if use_cache and not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+
+        # Configuração de logging
+        self.logger = self._setup_logger(log_level)
+
+        # Estatísticas de uso da API
+        self.requests_made = 0
+        self.cache_hits = 0
+        self.rate_limit_hits = 0
+        self.last_response = None
+
+        # Informações do repositório
+        self.repo_info = self._fetch_repo_info()
+
+    def _setup_logger(self, log_level: int) -> logging.Logger:
+        """Configura o logger para a classe."""
+        logger = logging.getLogger(f"GitHubClient-{self.owner}-{self.repo}")
+        logger.setLevel(log_level)
+
+        if not logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+
+        return logger
+
+    def _get_cache_key(self, url: str, params: Dict = None) -> str:
+        """Gera uma chave de cache única para uma requisição."""
+        params_str = json.dumps(params or {}, sort_keys=True)
+        key = f"{url}_{params_str}"
+        return hashlib.md5(key.encode()).hexdigest()
+
+    def _get_from_cache(self, cache_key: str) -> Optional[Dict]:
+        """Recupera dados do cache se disponíveis e válidos."""
+        if not self.use_cache:
+            return None
+
+        cache_file = os.path.join(self.cache_dir, f"{cache_key}.json")
+
+        if os.path.exists(cache_file):
+            # Verificar idade do cache
+            cache_age = time.time() - os.path.getmtime(cache_file)
+            if cache_age < self.cache_ttl:
+                try:
+                    with open(cache_file, "r", encoding="utf-8") as f:
+                        self.cache_hits += 1
+                        self.logger.debug(f"Cache hit para {cache_key}")
+                        return json.load(f)
+                except Exception as e:
+                    self.logger.warning(f"Erro ao ler cache: {str(e)}")
+            else:
+                self.logger.debug(
+                    f"Cache expirado para {cache_key} (idade: {cache_age:.1f}s)"
+                )
+
+        return None
+
+    def _save_to_cache(self, cache_key: str, data: Dict) -> None:
+        """Salva dados no cache."""
+        if not self.use_cache:
+            return
+
+        cache_file = os.path.join(self.cache_dir, f"{cache_key}.json")
+
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False)
+                self.logger.debug(f"Dados salvos em cache: {cache_key}")
+        except Exception as e:
+            self.logger.warning(f"Erro ao salvar cache: {str(e)}")
+
+    def check_rate_limit(self) -> Tuple[Optional[int], Optional[int]]:
+        """
+        Verifica os limites de taxa atuais da API.
+
+        Returns:
+            Tuple[int, int]: (requisições restantes, timestamp para reset)
+        """
+        url = f"{self.base_url}/rate_limit"
+
+        try:
+            response = requests.get(url, headers=self.headers)
+            self.last_response = response
+
+            if response.status_code == 200:
+                data = response.json()
+
+                # Obter limites de taxa core e search
+                core_rate = data["resources"]["core"]
+                search_rate = data["resources"]["search"]
+
+                # Formatar horário de reset para exibição
+                core_reset_time = datetime.fromtimestamp(core_rate["reset"]).strftime(
+                    "%H:%M:%S"
+                )
+                search_reset_time = datetime.fromtimestamp(
+                    search_rate["reset"]
+                ).strftime("%H:%M:%S")
+
+                # Informar limites de taxa
+                self.logger.info("\n--- Limites de Taxa da API GitHub ---")
+                self.logger.info(
+                    f"📊 Core API: {core_rate['remaining']}/{core_rate['limit']} restantes"
+                )
+                self.logger.info(
+                    f"🔎 Search API: {search_rate['remaining']}/{search_rate['limit']} restantes"
+                )
+                self.logger.info(f"⏱️ Core API reset às: {core_reset_time}")
+                self.logger.info(f"⏱️ Search API reset às: {search_reset_time}")
+
+                # Avisar se estiver próximo do limite
+                if core_rate["remaining"] < (core_rate["limit"] * 0.1):
+                    self.logger.warning(
+                        f"⚠️ ATENÇÃO: Menos de 10% das requisições Core disponíveis!"
+                    )
+
+                return core_rate["remaining"], core_rate["reset"]
+            else:
+                self.logger.error(
+                    f"❌ Erro ao verificar limites de taxa: {response.status_code}"
+                )
+                return None, None
+
+        except Exception as e:
+            self.logger.error(f"❌ Exceção ao verificar limites de taxa: {str(e)}")
+            return None, None
+
+    def _make_request(
+        self,
+        url: str,
+        params: Optional[Dict] = None,
+        method: str = "GET",
+        data: Optional[Dict] = None,
+        error_message: str = "Erro na requisição",
+        max_retries: int = 5,
+        use_cache: Optional[bool] = None,
+    ) -> Optional[Dict]:
+        """
+        Realiza uma requisição HTTP com tratamento avançado de erros e limites de taxa.
+
+        Args:
+            url: URL completa da requisição
+            params: Parâmetros de query string
+            method: Método HTTP (GET, POST, etc)
+            data: Dados para enviar (para POST, PUT, etc)
+            error_message: Mensagem personalizada para erros
+            max_retries: Número máximo de tentativas
+            use_cache: Sobrescreve configuração global de cache
+
+        Returns:
+            Dict: Resposta da API em formato JSON ou None em caso de erro
+        """
+        use_cache = self.use_cache if use_cache is None else use_cache
+
+        # Gerar chave de cache e verificar se temos dados em cache
+        if method == "GET" and use_cache:
+            cache_key = self._get_cache_key(url, params)
+            cached_data = self._get_from_cache(cache_key)
+
+            if cached_data:
+                self.logger.debug(f"🔄 Usando dados em cache para: {url}")
+                return cached_data
+
+        # Fazer a requisição com retentativas
+        retries = 0
+        self.requests_made += 1
+
+        while retries < max_retries:
+            try:
+                if method == "GET":
+                    response = requests.get(
+                        url, headers=self.headers, params=params, timeout=30
+                    )
+                elif method == "POST":
+                    response = requests.post(
+                        url, headers=self.headers, params=params, json=data, timeout=30
+                    )
+                elif method == "PUT":
+                    response = requests.put(
+                        url, headers=self.headers, params=params, json=data, timeout=30
+                    )
+                elif method == "DELETE":
+                    response = requests.delete(
+                        url, headers=self.headers, params=params, timeout=30
+                    )
+                else:
+                    raise ValueError(f"Método HTTP não suportado: {method}")
+
+                # Salvar a última resposta para uso em outros métodos
+                self.last_response = response
+
+                # Extrair informações de limite de taxa dos cabeçalhos
+                remaining = int(response.headers.get("X-RateLimit-Remaining", 0))
+                limit = int(response.headers.get("X-RateLimit-Limit", 0))
+                reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
+
+                # Se for bem-sucedido, retornar dados e cachear
+                if response.status_code == 200 or response.status_code == 201:
+                    result = response.json()
+
+                    # Salvar em cache se for GET
+                    if method == "GET" and use_cache:
+                        self._save_to_cache(cache_key, result)
+
+                    # Avisar se estiver com poucas requisições restantes
+                    if remaining < (limit * 0.1) and limit > 0:
+                        reset_datetime = datetime.fromtimestamp(reset_time).strftime(
+                            "%H:%M:%S"
+                        )
+                        self.logger.warning(
+                            f"⚠️ Apenas {remaining}/{limit} requisições restantes até {reset_datetime}"
+                        )
+
+                    return result
+
+                # Tratar limites de taxa (403/429)
+                elif response.status_code in (403, 429):
+                    self.rate_limit_hits += 1
+
+                    # Verificar se é realmente um problema de limite de taxa
+                    if (
+                        "X-RateLimit-Remaining" in response.headers
+                        and int(response.headers["X-RateLimit-Remaining"]) == 0
+                    ):
+                        reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
+                        current_time = time.time()
+                        sleep_time = (
+                            max(reset_time - current_time, 0) + 2
+                        )  # Margem de segurança
+
+                        self.logger.warning(
+                            f"⏳ Limite de taxa atingido. Aguardando {sleep_time:.1f} segundos até reset..."
+                        )
+                        time.sleep(sleep_time)
+                        retries += 1
+                        continue
+
+                    # Se for 429, usar o header Retry-After se disponível
+                    if (
+                        response.status_code == 429
+                        and "Retry-After" in response.headers
+                    ):
+                        retry_after = int(response.headers["Retry-After"])
+                        self.logger.warning(
+                            f"⏳ Taxa excedida. Aguardando {retry_after} segundos conforme solicitado."
+                        )
+                        time.sleep(retry_after)
+                        retries += 1
+                        continue
+
+                    # Backoff exponencial para outras tentativas
+                    wait_time = (2**retries) + (
+                        time.time() % 1
+                    )  # Adiciona um pouco de aleatoriedade
+                    self.logger.warning(
+                        f"⏳ {error_message} ({response.status_code}). Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s"
+                    )
+                    time.sleep(wait_time)
+                    retries += 1
+
+                # Outros erros
+                else:
+                    error_data = response.json() if response.text else {}
+                    error_msg = error_data.get("message", "Sem detalhes do erro")
+                    self.logger.error(
+                        f"❌ {error_message}: {response.status_code} - {error_msg}"
+                    )
+
+                    # Alguns erros não devem ser retentados
+                    if response.status_code in (401, 404, 422):
+                        return None
+
+                    # Para outros erros, tentar novamente com backoff
+                    wait_time = (2**retries) + (time.time() % 1)
+                    self.logger.warning(
+                        f"⏳ Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s"
+                    )
+                    time.sleep(wait_time)
+                    retries += 1
+
+            except requests.exceptions.RequestException as e:
+                self.logger.error(f"❌ Erro de conexão: {str(e)}")
+                wait_time = (2**retries) + (time.time() % 1)
+                self.logger.warning(
+                    f"⏳ Tentativa {retries+1}/{max_retries} em {wait_time:.1f}s"
+                )
+                time.sleep(wait_time)
+                retries += 1
+
+        # Se chegou aqui, todas as tentativas falharam
+        self.logger.error(f"❌ Falha após {max_retries} tentativas para: {url}")
+        return None
+
+    def _fetch_repo_info(self) -> Optional[Dict]:
+        """
+        Busca informações básicas sobre o repositório.
+
+        Returns:
+            Dict: Informações do repositório ou None em caso de erro
+        """
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}"
+        return self._make_request(
+            url, error_message="Erro ao obter informações do repositório"
+        )
+
+    def fetch_issues(
+        self,
+        state: str = "all",
+        per_page: int = 100,
+        since: Optional[str] = None,
+        labels: Optional[str] = None,
+        sort: str = "created",
+        direction: str = "desc",
+    ) -> List[Dict]:
+        """
+        Obtém todas as issues de um repositório, lidando com paginação.
+
+        Args:
+            state: Estado das issues (open, closed, all)
+            per_page: Número de itens por página
+            since: Data ISO 8601 (YYYY-MM-DDTHH:MM:SSZ) para filtrar issues atualizadas após esta data
+            labels: Lista de labels separadas por vírgula
+            sort: Campo para ordenação (created, updated, comments)
+            direction: Direção da ordenação (asc, desc)
+
+        Returns:
+            List[Dict]: Lista com todas as issues
+        """
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/issues"
+        params = {
+            "state": state,
+            "per_page": per_page,
+            "page": 1,
+            "sort": sort,
+            "direction": direction,
+        }
+
+        if since:
+            params["since"] = since
+
+        if labels:
+            params["labels"] = labels
+
+        all_issues = []
+        total_pages = 0
+
+        self.logger.info(
+            f"🔍 Buscando issues ({state}) do repositório {self.owner}/{self.repo}"
+        )
+
+        while True:
+            issues = self._make_request(
+                url,
+                params=params,
+                error_message=f"Erro ao obter issues da página {params['page']}",
+            )
+
+            if not issues or len(issues) == 0:
+                break
+
+            # Filtra para remover PRs (a API do GitHub retorna PRs como issues)
+            filtered_issues = [issue for issue in issues if "pull_request" not in issue]
+            all_issues.extend(filtered_issues)
+
+            total_pages = params["page"]
+
+            self.logger.info(
+                f"📋 Página {params['page']}: {len(filtered_issues)} issues encontradas"
+            )
+
+            # Verificar se tem mais páginas
+            if len(issues) < per_page:
+                break
+
+            params["page"] += 1
+
+            # Pequena pausa entre requisições para evitar sobrecarga
+            time.sleep(0.25)
+
+        self.logger.info(
+            f"✅ Total de issues coletadas: {len(all_issues)} em {total_pages} páginas"
+        )
+        return all_issues
+
+    def fetch_pull_requests(
+        self,
+        state: str = "all",
+        per_page: int = 100,
+        sort: str = "created",
+        direction: str = "desc",
+        base: Optional[str] = None,
+    ) -> List[Dict]:
+        """
+        Obtém todos os pull requests de um repositório, lidando com paginação.
+
+        Args:
+            state: Estado dos PRs (open, closed, all)
+            per_page: Número de itens por página
+            sort: Campo para ordenação (created, updated, popularity, long-running)
+            direction: Direção da ordenação (asc, desc)
+            base: Filtrar PRs por branch base
+
+        Returns:
+            List[Dict]: Lista com todos os pull requests
+        """
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/pulls"
+        params = {
+            "state": state,
+            "per_page": per_page,
+            "page": 1,
+            "sort": sort,
+            "direction": direction,
+        }
+
+        if base:
+            params["base"] = base
+
+        all_prs = []
+        total_pages = 0
+
+        self.logger.info(
+            f"🔍 Buscando pull requests ({state}) do repositório {self.owner}/{self.repo}"
+        )
+
+        while True:
+            prs = self._make_request(
+                url,
+                params=params,
+                error_message=f"Erro ao obter PRs da página {params['page']}",
+            )
+
+            if not prs or len(prs) == 0:
+                break
+
+            all_prs.extend(prs)
+            total_pages = params["page"]
+
+            self.logger.info(f"📋 Página {params['page']}: {len(prs)} PRs encontrados")
+
+            # Verificar se tem mais páginas
+            if len(prs) < per_page:
+                break
+
+            params["page"] += 1
+
+            # Pequena pausa entre requisições para evitar sobrecarga
+            time.sleep(0.25)
+
+        self.logger.info(
+            f"✅ Total de pull requests coletados: {len(all_prs)} em {total_pages} páginas"
+        )
+        return all_prs
+
+    def fetch_pr_details(self, pr_number: int) -> Optional[Dict]:
+        """
+        Obtém detalhes de um pull request específico, incluindo reviews e commits.
+
+        Args:
+            pr_number: Número do pull request
+
+        Returns:
+            Dict: Dados detalhados do pull request ou None em caso de erro
+        """
+        # Buscar dados básicos do PR
+        pr_url = f"{self.base_url}/repos/{self.owner}/{self.repo}/pulls/{pr_number}"
+        pr_data = self._make_request(
+            pr_url, error_message=f"Erro ao obter PR #{pr_number}"
+        )
+
+        if not pr_data:
+            return None
+
+        # Buscar commits do PR
+        commits_url = f"{pr_url}/commits"
+        commits = self._make_request(
+            commits_url, error_message=f"Erro ao obter commits do PR #{pr_number}"
+        )
+
+        # Buscar reviews do PR
+        reviews_url = f"{pr_url}/reviews"
+        reviews = self._make_request(
+            reviews_url, error_message=f"Erro ao obter reviews do PR #{pr_number}"
+        )
+
+        # Agregar dados
+        pr_data["commits_data"] = commits or []
+        pr_data["reviews_data"] = reviews or []
+
+        return pr_data
+
+    def fetch_commits(
+        self,
+        per_page: int = 100,
+        since: Optional[str] = None,
+        until: Optional[str] = None,
+        path: Optional[str] = None,
+        author: Optional[str] = None,
+    ) -> List[Dict]:
+        """
+        Obtém todos os commits de um repositório, lidando com paginação.
+
+        Args:
+            per_page: Número de itens por página
+            since: Data ISO 8601 para filtrar commits a partir desta data (YYYY-MM-DDTHH:MM:SSZ)
+            until: Data ISO 8601 para filtrar commits até esta data (YYYY-MM-DDTHH:MM:SSZ)
+            path: Filtra commits que modificaram arquivos neste caminho
+            author: Filtra commits por autor (username GitHub)
+
+        Returns:
+            List[Dict]: Lista com todos os commits
+        """
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/commits"
+        params = {"per_page": per_page, "page": 1}
+
+        if since:
+            params["since"] = since
+
+        if until:
+            params["until"] = until
+
+        if path:
+            params["path"] = path
+
+        if author:
+            params["author"] = author
+
+        all_commits = []
+        total_pages = 0
+
+        self.logger.info(f"🔍 Buscando commits do repositório {self.owner}/{self.repo}")
+
+        while True:
+            commits = self._make_request(
+                url,
+                params=params,
+                error_message=f"Erro ao obter commits da página {params['page']}",
+            )
+
+            if not commits or len(commits) == 0:
+                break
+
+            all_commits.extend(commits)
+            total_pages = params["page"]
+
+            self.logger.info(
+                f"📋 Página {params['page']}: {len(commits)} commits encontrados"
+            )
+
+            # Verificar se tem mais páginas
+            if len(commits) < per_page:
+                break
+
+            params["page"] += 1
+
+            # Pequena pausa entre requisições para evitar sobrecarga
+            time.sleep(0.25)
+
+        self.logger.info(
+            f"✅ Total de commits coletados: {len(all_commits)} em {total_pages} páginas"
+        )
+        return all_commits
+
+    def fetch_commit_details(self, commit_sha: str) -> Optional[Dict]:
+        """
+        Obtém detalhes de um commit específico, incluindo alterações.
+
+        Args:
+            commit_sha: SHA do commit
+
+        Returns:
+            Dict: Dados detalhados do commit ou None em caso de erro
+        """
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/commits/{commit_sha}"
+        return self._make_request(
+            url, error_message=f"Erro ao obter detalhes do commit {commit_sha}"
+        )
+
+    def search_repositories(
+        self, query: str, sort: str = "stars", order: str = "desc", per_page: int = 100
+    ) -> List[Dict]:
+        """
+        Pesquisa repositórios no GitHub.
+
+        Args:
+            query: Query de pesquisa
+            sort: Campo para ordenação (stars, forks, updated)
+            order: Direção da ordenação (asc, desc)
+            per_page: Itens por página
+
+        Returns:
+            List[Dict]: Lista de repositórios encontrados
+        """
+        url = f"{self.base_url}/search/repositories"
+        params = {
+            "q": query,
+            "sort": sort,
+            "order": order,
+            "per_page": per_page,
+            "page": 1,
+        }
+
+        all_repos = []
+        total_count = 0
+
+        while True:
+            result = self._make_request(
+                url,
+                params=params,
+                error_message=f"Erro na pesquisa de repositórios página {params['page']}",
+            )
+
+            if not result or "items" not in result:
+                break
+
+            if params["page"] == 1:
+                total_count = result.get("total_count", 0)
+                self.logger.info(f"📊 Total de resultados encontrados: {total_count}")
+
+            items = result["items"]
+            all_repos.extend(items)
+
+            # Verificar se tem mais páginas
+            if len(items) < per_page or len(all_repos) >= total_count:
+                break
+
+            params["page"] += 1
+
+            # Pequena pausa entre requisições para evitar sobrecarga
+            time.sleep(0.5)  # Search API tem limites mais restritos
+
+        return all_repos
+
+    def fetch_code_files(
+        self,
+        path: str = "",
+        ref: str = "main",
+        recursive: bool = True,
+        file_extensions: Optional[List[str]] = None,
+        exclude_dirs: Optional[List[str]] = None,
+        max_file_size: int = 1024 * 1024,  # 1MB por padrão
+    ) -> List[Dict]:
+        """
+        Obtém arquivos de código de um repositório, com opções de filtragem avançada.
+
+        Args:
+            path: Caminho base dentro do repositório
+            ref: Branch ou commit SHA para buscar os arquivos
+            recursive: Se deve buscar arquivos em subdiretórios recursivamente
+            file_extensions: Lista de extensões de arquivo para filtrar (.py, .js, etc)
+            exclude_dirs: Lista de diretórios para excluir da busca
+            max_file_size: Tamanho máximo do arquivo em bytes para baixar
+
+        Returns:
+            List[Dict]: Lista com todos os arquivos de código e seus conteúdos
+        """
+        if exclude_dirs is None:
+            exclude_dirs = [
+                ".git",
+                "node_modules",
+                "venv",
+                "__pycache__",
+                "build",
+                "dist",
+            ]
+
+        if file_extensions is None:
+            file_extensions = [
+                # Linguagens de programação populares
+                ".py",  # Python
+                ".js",  # JavaScript
+                ".ts",  # TypeScript
+                ".jsx",  # React JavaScript
+                ".tsx",  # React TypeScript
+                ".java",  # Java
+                ".c",  # C
+                ".cpp",  # C++
+                ".cs",  # C#
+                ".h",  # C/C++ Header
+                ".hpp",  # C++ Header
+                ".go",  # Go
+                ".rb",  # Ruby
+                ".php",  # PHP
+                ".pl",  # Perl
+                ".pm",  # Perl Module
+                ".swift",  # Swift
+                ".kt",  # Kotlin
+                ".kts",  # Kotlin Script
+                ".rs",  # Rust
+                ".scala",  # Scala
+                ".groovy",  # Groovy
+                ".r",  # R
+                ".lua",  # Lua
+                ".m",  # Objective-C / MATLAB
+                ".mm",  # Objective-C++
+                ".f",  # Fortran
+                ".f90",  # Fortran 90
+                ".f95",  # Fortran 95
+                # Linguagens de script
+                ".sh",  # Shell script
+                ".bash",  # Bash script
+                ".zsh",  # Zsh script
+                ".ps1",  # PowerShell
+                ".bat",  # Windows Batch
+                ".cmd",  # Windows Command
+                ".vbs",  # VBScript
+                ".awk",  # AWK
+                # Linguagens de marcação e formatação
+                ".html",  # HTML
+                ".htm",  # HTML (alternativo)
+                ".xhtml",  # XHTML
+                ".xml",  # XML
+                ".svg",  # SVG
+                ".css",  # CSS
+                ".scss",  # SCSS
+                ".sass",  # Sass
+                ".less",  # Less
+                ".json",  # JSON
+                ".yaml",  # YAML
+                ".yml",  # YAML (alternativo)
+                ".toml",  # TOML
+                ".md",  # Markdown
+                ".rst",  # reStructuredText
+                ".tex",  # LaTeX
+                ".wiki",  # Wiki markup
+                # Específicas para web e frameworks
+                ".vue",  # Vue.js
+                ".svelte",  # Svelte
+                ".asp",  # Active Server Pages
+                ".aspx",  # ASP.NET
+                ".jsp",  # JavaServer Pages
+                ".cshtml",  # Razor C#
+                ".razor",  # Razor
+                ".erb",  # Ruby ERB
+                ".haml",  # Haml
+                ".pug",  # Pug (antigo Jade)
+                # Linguagens de banco de dados
+                ".sql",  # SQL
+                ".hql",  # Hive Query Language
+                ".sparql",  # SPARQL
+                # Linguagens funcionais
+                ".hs",  # Haskell
+                ".lhs",  # Literate Haskell
+                ".ml",  # OCaml
+                ".mli",  # OCaml Interface
+                ".fs",  # F#
+                ".fsi",  # F# Interface
+                ".fsx",  # F# Script
+                ".clj",  # Clojure
+                ".cljs",  # ClojureScript
+                ".erl",  # Erlang
+                ".ex",  # Elixir
+                ".exs",  # Elixir Script
+                ".elm",  # Elm
+                # Específicas para domínio
+                ".d",  # D
+                ".dart",  # Dart
+                ".cob",  # COBOL
+                ".cbl",  # COBOL
+                ".abap",  # ABAP
+                ".ada",  # Ada
+                ".adb",  # Ada Body
+                ".ads",  # Ada Spec
+                ".v",  # Verilog
+                ".vhd",  # VHDL
+                ".ino",  # Arduino
+                ".sol",  # Solidity
+                ".proto",  # Protocol Buffers
+                ".jl",  # Julia
+                ".zig",  # Zig
+                ".pas",  # Pascal
+                ".nim",  # Nim
+                ".cr",  # Crystal
+                # Configuração e automação
+                ".tf",  # Terraform
+                ".tfvars",  # Terraform Variables
+                ".hcl",  # HCL
+                ".dockerfile",  # Dockerfile (sem extensão)
+                ".jenkinsfile",  # Jenkins pipeline
+                ".cmake",  # CMake
+                ".make",  # Makefile
+                ".gradle",  # Gradle
+                ".rake",  # Rake
+                ".ant",  # Ant
+                # Específicas para game dev
+                ".gd",  # Godot
+                ".as",  # ActionScript
+                ".unity",  # Unity
+                ".gml",  # GameMaker Language
+                # Outros formatos importantes
+                ".graphql",  # GraphQL
+                ".wasm",  # WebAssembly
+                ".ipynb",  # Jupyter Notebook
+                ".xaml",  # XAML
+                ".resx",  # .NET Resource
+                ".plist",  # Property List
+                ".dockerfile",  # Docker
+            ]
+
+        self.logger.info(
+            f"🔍 Buscando arquivos de código em {self.owner}/{self.repo}/{path} (ref: {ref})"
+        )
+
+        # Obter a estrutura de arquivos usando o endpoint contents
+        url = f"{self.base_url}/repos/{self.owner}/{self.repo}/contents/{path}"
+        params = {"ref": ref}
+
+        contents = self._make_request(
+            url,
+            params=params,
+            error_message=f"Erro ao obter estrutura de arquivos em {path}",
+        )
+
+        if not contents:
+            self.logger.warning(
+                f"❌ Não foi possível obter conteúdo do caminho: {path}"
+            )
+            return []
+
+        all_files = []
+
+        # Processar cada item no diretório
+        for item in contents:
+            item_path = item["path"]
+            item_type = item["type"]
+            item_name = item["name"]
+
+            # Pular diretórios excluídos
+            if item_type == "dir" and item_name in exclude_dirs:
+                self.logger.debug(f"⏩ Pulando diretório excluído: {item_path}")
+                continue
+
+            # Processar subdiretórios recursivamente
+            if item_type == "dir" and recursive:
+                self.logger.debug(f"📂 Explorando subdiretório: {item_path}")
+                subdir_files = self.fetch_code_files(
+                    path=item_path,
+                    ref=ref,
+                    recursive=recursive,
+                    file_extensions=file_extensions,
+                    exclude_dirs=exclude_dirs,
+                    max_file_size=max_file_size,
+                )
+                all_files.extend(subdir_files)
+
+            # Processar arquivos de código
+            elif item_type == "file":
+                # Verificar extensão do arquivo
+                if file_extensions and not any(
+                    item_name.endswith(ext) for ext in file_extensions
+                ):
+                    self.logger.debug(
+                        f"⏩ Arquivo ignorado (extensão não corresponde): {item_path}"
+                    )
+                    continue
+
+                # Verificar tamanho do arquivo
+                if item["size"] > max_file_size:
+                    self.logger.warning(
+                        f"⏩ Arquivo muito grande, pulando: {item_path} ({item['size']/1024:.1f} KB)"
+                    )
+                    continue
+
+                # Obter conteúdo do arquivo (já vem em base64 da API do GitHub)
+                file_content = self._make_request(
+                    item["url"],
+                    error_message=f"Erro ao baixar conteúdo do arquivo {item_path}",
+                    use_cache=True,
+                )
+
+                if file_content and "content" in file_content:
+                    try:
+                        # O conteúdo vem em base64 e precisa ser decodificado
+                        import base64
+
+                        content = base64.b64decode(
+                            file_content["content"].replace("\n", "")
+                        ).decode("utf-8")
+
+                        file_data = {
+                            "path": item_path,
+                            "name": item_name,
+                            "content": content,
+                            "size": item["size"],
+                            "sha": item["sha"],
+                            "url": item["html_url"],
+                        }
+
+                        all_files.append(file_data)
+                        self.logger.debug(f"✅ Arquivo processado: {item_path}")
+                    except Exception as e:
+                        self.logger.error(
+                            f"❌ Erro ao decodificar arquivo {item_path}: {str(e)}"
+                        )
+
+        self.logger.info(
+            f"✅ Total de {len(all_files)} arquivos de código coletados em {path}"
+        )
+        return all_files
+</file>
+
+<file path="main.py">
+import os
+import json
+import time
+import argparse
+from typing import Dict, Any
+from dotenv import load_dotenv
+from github_rag import GitHubRagTool
+from github_rag.utils import setup_environment
+
+
+def main():
+    """Função principal para analisar qualquer repositório do GitHub usando RAG"""
+    parser = argparse.ArgumentParser(description="GitHub RAG Tool")
+    parser.add_argument(
+        "--repo_url", type=str, help="URL do repositório GitHub para análise"
+    )
+    args = parser.parse_args()
+
+    # Carregar variáveis de ambiente
+    if not setup_environment():
+        print("❌ Falha ao configurar o ambiente")
+        return
+
+    # Obter URL do repositório (da linha de comando ou input do usuário)
+    repo_url = args.repo_url
+    if not repo_url:
+        repo_url = input("Digite a URL do repositório GitHub: ").strip()
+
+    if not repo_url.startswith("https://github.com/"):
+        print("❌ URL inválida. Use o formato: https://github.com/username/repo")
+        return
+
+    print(f"🚀 Iniciando sessão com o repositório: {repo_url}")
+
+    # Extrair nome do repositório para uso em mensagens e nome de sessão
+    repo_name = repo_url.split("/")[-1]
+
+    # Configurações pré-definidas
+    config_options = {
+        "chunk_size": 50_000,  # Chunks um pouco maiores para capturar mais contexto
+        "chunk_overlap": 3_000,  # Sobreposição maior para evitar perda de informação
+        "retriever_k": 30,  # Mais documentos para uma cobertura mais ampla
+        "use_memory": True,  # Habilitar memória da conversa
+        "memory_window": 5,  # Janela de memória moderada
+    }
+
+    # Criar a ferramenta RAG
+    print("🔧 Inicializando a ferramenta RAG...")
+    start_time = time.time()
+    rag_tool = GitHubRagTool(
+        repo_url=repo_url,
+        content_types=[
+            "code",
+            "issue",
+            "pull_request",
+        ],  # Incluindo PRs para mais contexto
+        custom_model=os.environ.get("OPENAI_EMBBENDING_MODEL"),
+        temperature=0.0,  # Temperatura mais baixa para respostas mais consistentes
+    )
+
+    # Aplicar configurações
+    rag_tool.configure(config_options)
+    print(f"⚙️ Configurações aplicadas: {json.dumps(config_options, indent=2)}")
+
+    # Verificar se devemos reconstruir a base
+    rebuild = (
+        input("Reconstruir a base de conhecimento? (s/n, padrão: n): ").strip().lower()
+        == "s"
+    )
+
+    # Construir base de conhecimento
+    print("🔍 Construindo base de conhecimento...")
+    success = rag_tool.build_knowledge_base(
+        limit_issues=100, rebuild=rebuild  # Limitamos a 100 issues
+    )
+
+    if not success:
+        print("❌ Falha ao construir a base de conhecimento")
+        return
+
+    setup_time = time.time() - start_time
+    print(f"✅ Preparação concluída em {setup_time:.2f} segundos")
+
+    # Mostrar status da ferramenta
+    status = rag_tool.get_status()
+    print("\n📊 Status da Ferramenta:")
+    print(f"- Sessão: {status['session_id']}")
+    print(f"- Modelo de Chat: {os.environ.get('OPENAI_MODEL')}")
+    print(f"- Modelo de Embedding: {os.environ.get('OPENAI_EMBBENDING_MODEL')}")
+    print(f"- Base vetorial pronta: {status['is_vectordb_ready']}")
+
+    if status["vector_db"]:
+        print(f"- Documentos indexados: {status['vector_db']['total_documentos']}")
+
+    # Loop de consulta
+    print(f"\n💬 Modo de consulta ativado para o repositório {repo_name}")
+    print(
+        "Digite 'sair' para encerrar, 'status' para ver estatísticas, ou 'ajuda' para comandos adicionais"
+    )
+
+    while True:
+        question = input("\nPergunta: ")
+
+        # Comandos especiais
+        if question.lower() in ["sair", "exit", "quit"]:
+            break
+        elif question.lower() == "status":
+            current_status = rag_tool.get_status()
+            print("\n📊 Estatísticas Atuais:")
+            print(f"- Consultas realizadas: {current_status['stats']['queries_count']}")
+            print(
+                f"- Tempo médio de resposta: {current_status['stats']['avg_response_time']:.2f}s"
+            )
+            continue
+        elif question.lower() == "ajuda":
+            print("\n📋 Comandos disponíveis:")
+            print("- 'sair': Encerra o programa")
+            print("- 'status': Mostra estatísticas atuais")
+            print("- 'fontes <consulta>': Busca fontes diretamente sem gerar resposta")
+            print("- 'ajuda': Mostra esta mensagem")
+            continue
+        elif question.lower().startswith("fontes "):
+            query = question[7:].strip()  # Remove o comando "fontes "
+            sources = rag_tool.search_sources(query, limit=10)
+            print("\n📚 Fontes encontradas:")
+            for source in sources:
+                print(f"- [{source['index']}] Score: {source['score']:.4f}")
+                print(f"  Tipo: {source['metadata'].get('type', 'N/A')}")
+                if source["metadata"].get("file_path"):
+                    print(f"  Arquivo: {source['metadata']['file_path']}")
+                if source["metadata"].get("number"):
+                    print(f"  Número: {source['metadata']['number']}")
+                print()
+            continue
+
+        # Consulta normal
+        start_query_time = time.time()
+        print("⏳ Processando consulta...")
+        result = rag_tool.query(question)
+        query_time = time.time() - start_query_time
+
+        # Exibir resultado
+        print(f"\n🔄 Resposta (gerada em {query_time:.2f}s):")
+        print(result.get("resposta", "Resposta não fornecida"))
+
+        # Imprimir as fontes do conhecimento
+        fontes = result.get("fontes", [])
+        if fontes:
+            print("\n📚 Fontes do conhecimento:")
+            for i, fonte in enumerate(fontes, 1):
+                print(
+                    f"  [{i}] {fonte.get('tipo', 'Tipo desconhecido')}: {fonte.get('título', 'Sem título')}"
+                )
+                if fonte.get("url"):
+                    print(f"     URL: {fonte.get('url')}")
+                if fonte.get("conteúdo_parcial"):
+                    conteudo = fonte.get("conteúdo_parcial")
+                    # Limitar o tamanho do conteúdo para melhor visualização
+                    if len(conteudo) > 100:
+                        conteudo = conteudo[:100] + "..."
+                    print(f"     Trecho: {conteudo}")
+                print()
+        else:
+            print("\nNenhuma fonte de conhecimento disponível.")
+
+        print(f"\nConfiança: {result.get('confiança', 'N/A')}")
+
+        # Exibir fontes
+        sources = result.get("sources", [])
+        if sources:
+            print("\n📚 Fontes:")
+            for i, source in enumerate(sources, 1):
+                metadata = source.get("metadata", {})
+                source_type = metadata.get("type", "desconhecido")
+
+                if source_type == "issue":
+                    print(
+                        f"[{i}] Issue #{metadata.get('number', 'N/A')}: {metadata.get('title', 'Sem título')}"
+                    )
+                    print(f"    URL: {metadata.get('url', 'N/A')}")
+                elif source_type == "pull_request":
+                    print(
+                        f"[{i}] PR #{metadata.get('number', 'N/A')}: {metadata.get('title', 'Sem título')}"
+                    )
+                    print(f"    URL: {metadata.get('url', 'N/A')}")
+                else:
+                    print(f"[{i}] Arquivo: {metadata.get('file_path', 'N/A')}")
+                    if "language" in metadata:
+                        print(f"    Linguagem: {metadata.get('language', 'N/A')}")
+
+    # Salvar sessão automaticamente
+    save_dir = f"./sessions/{repo_name}_{int(time.time())}"
+    print(f"\n💾 Salvando sessão em {save_dir}...")
+    success = rag_tool.save_session(save_dir)
+
+    if success:
+        print("✅ Sessão salva com sucesso")
+    else:
+        print("⚠️ Falha ao salvar a sessão")
+
+    print("\n🎬 Sessão finalizada. Obrigado por utilizar a ferramenta!")
+
+
+if __name__ == "__main__":
+    main()
+</file>
+
+</files>

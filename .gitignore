@@ -5,3 +5,4 @@ chroma_db/
 .github_cache/
 sessions/
 env/
+github_cache/

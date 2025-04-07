@@ -4,7 +4,7 @@ import json
 import time
 from datetime import datetime
 
-from github_rag.github_client import GitHubClient
+from github_rag.github import GitHubClient
 from github_rag.data_loader import GitHubDataLoader
 from github_rag.vector_store import VectorStore
 from github_rag.conversation import ConversationManager
