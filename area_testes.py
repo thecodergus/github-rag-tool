@@ -1,300 +1,363 @@
-from typing import Dict, List, Optional
-import os
-import requests
-import base64
-import multiprocessing
-from urllib.parse import urlparse
-import pickle
+import dataclasses
 import hashlib
-import dotenv
+from typing import *
+import re
+from bs4 import BeautifulSoup
+import pymupdf
+from lxml import etree
+import mistune
+from dataclasses import dataclass
 
-dotenv.load_dotenv()
+
+@dataclass
+class ContentChunk:
+    header_path: List[str]
+    content: str
+    chunk_type: str
+    metadata: Dict
+    parent_hash: str = ""
+    self_hash: str = ""
 
 
-class GitHubDataExtractor:
-    """Classe unificada para extração de dados estruturados do GitHub
+@dataclass
+class StackFrame:
+    node: Dict
+    current_path: List[str]
+    current_level: int
+    parent_chunk: Optional[ContentChunk] = None
 
-    Atributos:
-        api_token (str): Token de autenticação da API do GitHub
-        repo_url (str): URL completa do repositório
-        api_base (str): URL base da API GitHub
-        cache_dir (str): Diretório para cache local
-        session (requests.Session): Sessão HTTP reutilizável
-    """
 
-    def __init__(
-        self, github_api_token: str, repo_url: str, cache_enabled: bool = True
-    ):
-        self.api_token = github_api_token
-        self.repo_url = repo_url
-        self.api_base = "https://api.github.com/repos"
-        self.cache_enabled = cache_enabled
-        self.cache_dir = "./.github_cache"
-        self.session = self._create_session()
-
-        # Setup do cache
-        if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir)
-
-    def _create_session(self) -> requests.Session:
-        """Cria sessão HTTP com headers de autenticação"""
-        session = requests.Session()
-        session.headers.update(
-            {
-                "Authorization": f"Bearer {self.api_token}",
-                "Accept": "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28",
-            }
-        )
-        return session
-
-    def _make_request(self, url: str) -> Optional[Dict]:
-        """Método genérico para requisições à API com cache e tratamento de erros"""
-        cache_key = hashlib.md5(url.encode()).hexdigest()
-        cache_path = os.path.join(self.cache_dir, f"{cache_key}.pkl")
-
-        # Verificar cache
-        if self.cache_enabled and os.path.exists(cache_path):
-            with open(cache_path, "rb") as f:
-                return pickle.load(f)
-
-        try:
-            response = self.session.get(url)
-            response.raise_for_status()
-            data = response.json()
-
-            # Salvar em cache
-            if self.cache_enabled:
-                with open(cache_path, "wb") as f:
-                    pickle.dump(data, f)
-
-            return data
-        except Exception as e:
-            print(f"Erro na requisição para {url}: {str(e)}")
-            return None
-
-    def _get_repo_info(self) -> Dict:
-        """Extrai informações básicas do repositório"""
-        path = f"{self.api_base}/{self._parse_repo_path()}"
-        return self._make_request(path)
-
-    def _parse_repo_path(self) -> str:
-        """Converte URL do repositório para path da API"""
-        parsed = urlparse(self.repo_url)
-        return parsed.path.strip("/")
-
-    def _parallel_fetch(self, urls: List[str]) -> List[Dict]:
-        """Executa fetch paralelo de múltiplos endpoints"""
-        with multiprocessing.Pool() as pool:
-            results = pool.map(self._make_request, urls)
-        return [r for r in results if r is not None]
-
-    def get_structured_data(self, content_types: List[str]) -> Dict[str, List[Dict]]:
-        """Método principal para coleta estruturada de dados"""
-        repo_info = self._get_repo_info()
-        if not repo_info:
-            raise ValueError("Repositório não encontrado ou sem acesso")
-
-        results = {}
-
-        if "issues" in content_types:
-            results["issues"] = self._get_issues_with_comments()
-
-        if "pull_requests" in content_types:
-            results["pull_requests"] = self._get_pull_requests_with_comments()
-
-        if "releases" in content_types:
-            results["releases"] = self._get_releases()
-
-        if "documentation" in content_types:
-            results["documentation"] = self._get_documentation_files()
-
-        return results
-
-    def _get_issues_with_comments(self) -> List[Dict]:
-        """Extrai issues e seus comentários formatados"""
-        issues_url = f"{self.api_base}/{self._parse_repo_path()}/issues?state=all"
-        issues = self._make_request(issues_url) or []
-
-        # Paralelizar busca de comentários
-        comment_urls = [issue["comments_url"] for issue in issues]
-        comments = self._parallel_fetch(comment_urls)
-
-        structured_issues = []
-        for issue, comment_list in zip(issues, comments):
-            structured_issues.append(
-                {
-                    "id": issue["id"],
-                    "type": "issue",
-                    "title": issue["title"],
-                    "body": issue["body"],
-                    "state": issue["state"],
-                    "created_at": issue["created_at"],
-                    "updated_at": issue["updated_at"],
-                    "labels": [label["name"] for label in issue.get("labels", [])],
-                    "comments": [
-                        {
-                            "author": comment["user"]["login"],
-                            "body": comment["body"],
-                            "created_at": comment["created_at"],
-                        }
-                        for comment in comment_list
-                    ],
-                    "metadata": {
-                        "api_url": issue["url"],
-                        "html_url": issue["html_url"],
-                    },
-                }
-            )
-
-        return structured_issues
-
-    def _get_pull_requests_with_comments(self) -> List[Dict]:
-        """Extrai PRs com comentários e revisões"""
-        prs_url = f"{self.api_base}/{self._parse_repo_path()}/pulls?state=all"
-        prs = self._make_request(prs_url) or []
-
-        structured_prs = []
-        for pr in prs:
-            # Buscar dados complementares
-            comments = self._make_request(pr["comments_url"]) or []
-            reviews = self._make_request(pr["review_comments_url"]) or []
-
-            structured_prs.append(
-                {
-                    "id": pr["id"],
-                    "type": "pull_request",
-                    "title": pr["title"],
-                    "body": pr["body"],
-                    "state": pr["state"],
-                    "created_at": pr["created_at"],
-                    "updated_at": pr["updated_at"],
-                    "merge_commit_sha": pr.get("merge_commit_sha"),
-                    "comments": [
-                        {
-                            "type": "comment",
-                            "author": c["user"]["login"],
-                            "body": c["body"],
-                            "created_at": c["created_at"],
-                        }
-                        for c in comments
-                    ],
-                    "reviews": [
-                        {
-                            "review_id": r["id"],
-                            "type": "review",
-                            "author": r["user"]["login"],
-                            "author_association": r["author_association"],
-                            "body": r["body"],
-                            "timestamps": {
-                                "created": r["created_at"],
-                                "updated": r["updated_at"],
-                            },
-                            "metadata": {
-                                "commit_id": r["commit_id"],
-                                "html_url": r["html_url"],
-                                "pull_request_url": r["pull_request_url"],
-                                "node_id": r["node_id"],
-                            },
-                            "interactions": {"reactions": r.get("reactions", {})},
-                        }
-                        for r in reviews
-                        if r and isinstance(r, dict)
-                    ],
-                    "metadata": {
-                        "base_branch": pr["base"]["ref"],
-                        "head_branch": pr["head"]["ref"],
-                        "api_url": pr["url"],
-                        "html_url": pr["html_url"],
-                    },
-                }
-            )
-
-        return structured_prs
-
-    def _get_releases(self) -> List[Dict]:
-        """Extrai informações de releases"""
-        releases_url = f"{self.api_base}/{self._parse_repo_path()}/releases"
-        releases = self._make_request(releases_url) or []
-
-        return [
-            {
-                "id": release["id"],
-                "type": "release",
-                "tag_name": release["tag_name"],
-                "name": release["name"],
-                "body": release["body"],
-                "created_at": release["created_at"],
-                "published_at": release["published_at"],
-                "assets": [
-                    {
-                        "name": asset["name"],
-                        "size": asset["size"],
-                        "download_url": asset["browser_download_url"],
-                    }
-                    for asset in release.get("assets", [])
-                ],
-                "metadata": {
-                    "api_url": release["url"],
-                    "html_url": release["html_url"],
+class HierarchicalChunker:
+    def __init__(self, config: Dict):
+        self.config = {
+            "max_chunk_size": 3100,
+            "header_levels": {
+                "markdown": ["#", "##", "###", "####", "#####"],
+                "html": ["h1", "h2", "h3", "h4"],
+                "latex": ["section", "subsection", "subsubsection", "subsubsubsection"],
+                "pdf": {
+                    "font_sizes": [20, 18, 16, 14],
+                    "font_names": ["Helv", "Arial"],
                 },
-            }
-            for release in releases
-        ]
-
-    def _get_documentation_files(self) -> List[Dict]:
-        """Baixa e processa arquivos de documentação"""
-        repo_content_url = f"{self.api_base}/{self._parse_repo_path()}/contents/"
-        all_files = self._make_request(repo_content_url) or []
-
-        doc_extensions = {".md", ".mdx", ".html", ".tex", ".pdf"}
-        doc_files = [
-            file
-            for file in all_files
-            if os.path.splitext(file["name"])[1].lower() in doc_extensions
-        ]
-
-        # Processamento paralelo dos conteúdos
-        with multiprocessing.Pool() as pool:
-            contents = pool.map(self._process_doc_file, doc_files)
-
-        return [c for c in contents if c is not None]
-
-    def _process_doc_file(self, file_info: Dict) -> Optional[Dict]:
-        """Processa individualmente cada arquivo de documentação"""
-        content_url = file_info["url"]
-        content_data = self._make_request(content_url)
-
-        if not content_data or "content" not in content_data:
-            return None
-
-        content = base64.b64decode(content_data["content"]).decode(
-            "utf-8", errors="replace"
-        )
-
-        return {
-            "type": "documentation",
-            "path": file_info["path"],
-            "name": file_info["name"],
-            "content": content,
-            "encoding": "utf-8",
-            "size": file_info["size"],
-            "metadata": {
-                "sha": file_info["sha"],
-                "html_url": file_info["html_url"],
-                "download_url": file_info["download_url"],
             },
+            "preserve_elements": {"code_blocks": True, "tables": True, "math": True},
         }
+        self.config.update(config)
+
+    def chunk(self, content: str, file_type: str) -> List[ContentChunk]:
+        parser = self._get_parser(file_type)
+        tree = parser(content)
+
+        return tree["children"]
+
+    def _get_parser(self, file_type: str):
+        return {
+            "markdown": self._parse_markdown,
+            "html": self._parse_html,
+            "latex": self._parse_latex,
+            "pdf": self._parse_pdf,
+        }[file_type]
+
+    def _get_current_path(self) -> str:
+        """
+        Constrói e retorna o caminho hierárquico atual baseado nos chunks ativos.
+
+        Returns:
+            str: Caminho completo separado por pontos, ex: 'root.section1.subsection'
+        """
+        # Filtra chunks vazios e junta com pontos
+        active_chunks = [chunk for chunk in self.chunks if chunk.strip()]
+        return ".".join(active_chunks) if active_chunks else "root"
+
+    def _parse_markdown(self, content: str) -> Dict:
+        """
+        Processa conteúdo Markdown usando o AST (Abstract Syntax Tree) do Mistune.
+        Retorna uma estrutura de dicionário com chunks processados.
+        """
+        chunks = []
+        current_hierarchy = []
+
+        # Configuração do parser Mistune com AST renderer
+        markdown = mistune.create_markdown(renderer="ast")
+
+        # Extrai apenas os tokens AST da tupla retornada
+        tokens_ast = markdown(content)
+
+        def process_children(children: List[Dict]) -> str:
+            """Processa recursivamente os tokens filhos para extrair texto."""
+            text_parts = []
+            for child in children:
+                if child["type"] == "text":
+                    text_parts.append(child.get("raw", ""))
+                elif child["type"] == "emphasis":
+                    inside = process_children(child["children"])
+                    text_parts.append(f"*{inside}*")
+                elif child["type"] == "strong":
+                    inside = process_children(child["children"])
+                    text_parts.append(f"**{inside}**")
+                elif child["type"] == "link":
+                    text = process_children(child["children"])
+                    url = child["attrs"].get("url", "#")
+                    text_parts.append(f"[{text}]({url})")
+                elif child["type"] == "image":
+                    alt = process_children(child["children"])
+                    url = child["attrs"].get("url", "#")
+                    text_parts.append(f"![{alt}]({url})")
+                elif child["type"] == "codespan":
+                    text_parts.append(f"`{child.get('raw', '')}`")
+                elif child["type"] == "linebreak":
+                    text_parts.append("\n")
+                elif child["type"] == "softbreak":
+                    text_parts.append(" ")
+            return "".join(text_parts)
+
+        def handle_list(list_token: Dict, indent: int = 0) -> str:
+            """Processa tokens de lista (ordenada ou não-ordenada)."""
+            is_ordered = list_token["attrs"].get("ordered", False)
+            items = []
+            for idx, item in enumerate(list_token.get("children", []), 1):
+                # Processa o texto do item da lista
+                item_text = ""
+                for child in item.get("children", []):
+                    if child["type"] == "block_text":
+                        item_text += process_children(child["children"])
+                    elif child["type"] == "list":
+                        # Lista aninhada
+                        item_text += "\n" + handle_list(child, indent + 1)
+                    elif child["type"] == "block_code":
+                        # Código dentro de item de lista
+                        code_content = child.get("raw", "")
+                        language = child["attrs"].get("info", "")
+                        chunks.append(
+                            ContentChunk(
+                                header_path=current_hierarchy.copy(),
+                                content=code_content,
+                                chunk_type="code_block",
+                                metadata={"language": language},
+                                self_hash=hashlib.sha256(
+                                    code_content.encode()
+                                ).hexdigest()[:16],
+                            )
+                        )
+
+                # Formata o item com indentação apropriada
+                prefix = " " * (indent * 2)
+                if is_ordered:
+                    items.append(f"{prefix}{idx}. {item_text}")
+                else:
+                    items.append(f"{prefix}- {item_text}")
+
+            return "\n".join(items)
+
+        for token in tokens_ast:
+            ttype = token.get("type", "")
+
+            if ttype == "heading":
+                # Processa cabeçalhos e atualiza hierarquia
+                level = token["attrs"]["level"]
+                header_text = process_children(token["children"])
+
+                if level > len(current_hierarchy):
+                    current_hierarchy.append(header_text)
+                else:
+                    current_hierarchy = current_hierarchy[: level - 1] + [header_text]
+
+            elif ttype in {"paragraph", "block_code", "list", "block_quote", "table"}:
+                # Processa outros tipos que dependem do header_path
+                content = token.get("raw", "")
+
+                # Para parágrafos ou elementos com filhos
+                if ttype == "paragraph" or "children" in token:
+                    content = process_children(token.get("children", []))
+
+                # Tipo de chunk ajustado dinamicamente:
+                chunk_type = ttype if ttype != "list" else "list"
+                metadata = {}
+
+                # Adiciona metadata para listas e blocos de código
+                if ttype == "list":
+                    metadata.update(
+                        {
+                            "ordered": token["attrs"].get("ordered", False),
+                            "depth": token["attrs"].get("depth", 0),
+                        }
+                    )
+                elif ttype == "block_code":
+                    metadata.update(
+                        {
+                            "language": token["attrs"].get("info", ""),
+                            "fence": token.get("marker", "```"),
+                        }
+                    )
+
+                if content.strip():
+                    chunks.append(
+                        ContentChunk(
+                            header_path=current_hierarchy.copy(),  # Corrigido para usar hierarquia
+                            content=content,
+                            chunk_type=chunk_type,
+                            metadata=metadata,
+                            self_hash=hashlib.sha256(content.encode()).hexdigest()[:16],
+                        )
+                    )
+
+            elif ttype == "thematic_break":
+                # Quebras temáticas (ex: "---") ainda estão associadas ao header_path atual
+                chunks.append(
+                    ContentChunk(
+                        header_path=current_hierarchy.copy(),  # Respeita hierarquia do contexto atual
+                        content="---",  # Representa o separador
+                        chunk_type="thematic_break",
+                        metadata={},
+                        self_hash=hashlib.sha256("---".encode()).hexdigest()[:16],
+                    )
+                )
+
+            elif ttype == "blank_line":
+                # Linhas em branco não geram conteúdo, apenas mantêm a estrutura
+                continue
+
+        # Retorna a estrutura esperada
+        return {"children": chunks}
+
+    # HTML Parser
+    def _parse_html(self, content: str) -> Dict:
+        soup = BeautifulSoup(content, "html.parser")
+        return self._build_html_tree(soup.find_all(True))
+
+    def _build_html_tree(self, elements: List, level: int = 0) -> Dict:
+        tree = {"children": [], "current_text": ""}
+        for element in elements:
+            if element.name in self.config["header_levels"]["html"]:
+                header_level = int(element.name[1])
+                tree["children"].append(
+                    {
+                        "type": "header",
+                        "level": header_level,
+                        "text": element.get_text(),
+                        "children": self._build_html_tree(
+                            element.next_siblings, header_level
+                        ),
+                    }
+                )
+            elif element.name == "pre":
+                code_content = element.get_text()
+                tree["children"].append(
+                    ContentChunk(
+                        header_path=self._get_current_path(),
+                        content=code_content,
+                        chunk_type="code_block",
+                        metadata={"language": self._detect_code_language(element)},
+                    )
+                )
+            else:
+                tree["current_text"] += element.get_text() + "\n"
+
+        # Process remainder text
+        if tree["current_text"]:
+            tree["children"].append(
+                ContentChunk(
+                    header_path=self._get_current_path(),
+                    content=tree["current_text"],
+                    chunk_type="text",
+                    metadata={},
+                )
+            )
+        return tree
+
+    # LaTeX Parser
+    def _parse_latex(self, content: str) -> Dict:
+        sections = re.findall(
+            r"\$section|subsection|subsubsection)\*?{(.*?)}", content, re.DOTALL
+        )
+        structure = []
+        current_level = 0
+        current_path = []
+
+        for section_type, content in sections:
+            level = self.config["header_levels"]["latex"].index(section_type) + 1
+            title = content.split("\n")[0].strip()
+
+            if level > current_level:
+                current_path.append(title)
+            else:
+                current_path = current_path[: level - 1] + [title]
+
+            section_content = self._extract_latex_content(content)
+            structure.append({"paths": current_path.copy(), "content": section_content})
+
+        return structure
+
+    # PDF Parser
+    def _parse_pdf(self, content: bytes) -> Dict:
+        doc = pymupdf.open(stream=content, filetype="pdf")
+        structure = []
+        current_hierarchy = []
+        prev_heading = None
+
+        for page in doc:
+            blocks = page.get_text("dict", flags=pymupdf.TEXT_PRESERVE_WHITESPACE)[
+                "blocks"
+            ]
+
+            for block in blocks:
+                if "lines" in block:
+                    for line in block["lines"]:
+                        for span in line["spans"]:
+                            if self._is_pdf_heading(span):
+                                level = self._determine_pdf_heading_level(span)
+                                title = span["text"]
+
+                                if not prev_heading or level <= prev_heading["level"]:
+                                    current_hierarchy = current_hierarchy[
+                                        : level - 1
+                                    ] + [title]
+
+                                structure.append(
+                                    {
+                                        "paths": current_hierarchy.copy(),
+                                        "content": "",
+                                        "level": level,
+                                    }
+                                )
+                                prev_heading = {"text": title, "level": level}
+                            else:
+                                if structure:
+                                    structure[-1]["content"] += span["text"]
+
+        return structure
+
+    def _is_pdf_heading(self, span: Dict) -> bool:
+        font_size = span["size"]
+        font_name = span["font"].lower()
+        header_sizes = self.config["header_levels"]["pdf"]["font_sizes"]
+        header_fonts = set(
+            f.lower() for f in self.config["header_levels"]["pdf"]["font_names"]
+        )
+        return (font_size in header_sizes) and (font_name in header_fonts)
+
+    def _determine_pdf_heading_level(self, span: Dict) -> int:
+        sorted_sizes = sorted(
+            set(self.config["header_levels"]["pdf"]["font_sizes"]), reverse=True
+        )
+        return sorted_sizes.index(span["size"]) + 1
 
 
 if __name__ == "__main__":
-    git = GitHubDataExtractor(
-        github_api_token=os.environ.get("GITHUB_API_TOKEN"),
-        repo_url="https://github.com/huggingface/lerobot",
+    chunker = HierarchicalChunker(
+        {
+            "max_chunk_size": 3100,
+            "preserve_elements": {"math": False, "code_blocks": True},
+        }
     )
 
-    resultado = git.get_structured_data(
-        ["issues", "pull_requests", "releases", "documentation"]
-    )
+    # Para Markdown
+    with open("test_document.md", "r") as f:
+        chunks_md = chunker.chunk(f.read(), "markdown")
 
-    print(resultado)
+    for m in chunks_md:
+        print(m)
+    # with open("test_document.md", "r") as f:
+    #     chunks_html = chunker.chunk(f.read(), "html")
+
+    # print(chunks_html)

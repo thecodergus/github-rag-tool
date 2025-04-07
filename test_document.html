@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documento de Teste HTML</title>
+    <!-- Teste: Metadados -->
+</head>
+<body>
+    <header>
+        <h1>Cabeçalho Principal</h1>
+        <nav aria-label="Menu principal">
+            <ul>
+                <li><a href="#secao1">Seção 1</a></li>
+                <li><a href="#secao2">Seção 2</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <article id="secao1">
+            <h2>Seção 1 - Elementos Básicos</h2>
+            
+            <p>Parágrafo com <strong>texto forte</strong> e <em>ênfase</em>.</p>
+            <p>Caracteres especiais: &lt; &amp; &gt;</p>
+            
+            <section>
+                <h3>Listas</h3>
+                <ul class="test-list">
+                    <li>Item A</li>
+                    <li>Item B
+                        <ol>
+                            <li>Subitem 1</li>
+                            <li>Subitem 2</li>
+                        </ol>
+                    </li>
+                </ul>
+            </section>
+        </article>
+
+        <article id="secao2">
+            <h2>Seção 2 - Elementos Complexos</h2>
+            
+            <table summary="Tabela de testes">
+                <caption>Resultados de Testes</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col">Descrição</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>TC-001</td>
+                        <td><span class="highlight">Teste de login</span></td>
+                        <td><button aria-label="Status">✅</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div role="region" aria-labelledby="formTitle">
+                <h3 id="formTitle">Formulário de Teste</h3>
+                <form onsubmit="return false">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+                    
+                    <fieldset>
+                        <legend>Opções:</legend>
+                        <label><input type="checkbox"> Opção 1</label>
+                        <label><input type="radio" name="grupo"> Opção A</label>
+                    </fieldset>
+                    
+                    <button type="submit">Enviar</button>
+                </form>
+            </div>
+            
+            <aside>
+                <h4>Conteúdo Relacionado</h4>
+                <p>Informações adicionais...</p>
+            </aside>
+        </article>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Testes HTML</p>
+        <!-- Teste: Elementos de rodapé -->
+    </footer>
+</body>
+</html>
