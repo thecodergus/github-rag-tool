@@ -12,6 +12,8 @@ from datetime import datetime
 
 from .history_formatter import HistoryFormatter
 from .source_document_processor import SourceDocumentProcessor
+from .query_router import QueryRouter
+from .prompt_templates import PromptTemplateManager
 
 
 class ConversationManager:
@@ -30,6 +32,8 @@ class ConversationManager:
         retriever_k: int = 5,
         streaming: bool = False,
         verbose: bool = False,
+        enable_query_routing: bool = True,
+        enable_smart_prompts: bool = True,
     ):
         """
         Inicializa o gerenciador de conversação.
@@ -43,6 +47,8 @@ class ConversationManager:
             retriever_k: Número de documentos a recuperar por consulta
             streaming: Se as respostas devem ser transmitidas em tempo real
             verbose: Se logs detalhados devem ser exibidos
+            enable_query_routing: Se o roteamento inteligente de consultas deve ser habilitado
+            enable_smart_prompts: Se templates de prompt especializados devem ser usados
         """
         self.retriever = retriever
         self.model_name = model_name
@@ -54,6 +60,8 @@ class ConversationManager:
         self.retriever_k = retriever_k
         self.streaming = streaming
         self.verbose = verbose
+        self.enable_query_routing = enable_query_routing
+        self.enable_smart_prompts = enable_smart_prompts
         self.conversation_chain = None
         self.memory = None
         self.stats = {
@@ -63,6 +71,10 @@ class ConversationManager:
         }
         self.history_formatter = HistoryFormatter()
         self.source_processor = SourceDocumentProcessor()
+        
+        # Inicializar componentes de query routing e prompts inteligentes
+        self.query_router = QueryRouter() if enable_query_routing else None
+        self.prompt_manager = PromptTemplateManager() if enable_smart_prompts else None
 
         # Configurar logger
         logging.basicConfig(level=logging.INFO if verbose else logging.WARNING)
@@ -182,21 +194,45 @@ class ConversationManager:
         self.stats["queries"] += 1
 
         try:
-            # Realizar a consulta
-            result = self.conversation_chain({"question": question})
+            # Classificar query se routing habilitado
+            query_classification = None
+            if self.enable_query_routing and self.query_router:
+                classification, _ = self.query_router.route_query(question)
+                query_classification = classification
+                self.logger.debug(f"Query classificada como: {classification.query_type.value}")
+
+            # Usar prompt inteligente se habilitado
+            if self.enable_smart_prompts and self.prompt_manager and query_classification:
+                result = self._query_with_smart_prompt(question, query_classification)
+            else:
+                # Query tradicional
+                result = self.conversation_chain({"question": question})
 
             # Atualizar estatísticas (estimativa simplificada de tokens)
-            token_estimate = len(question) // 4 + len(result.get("answer", "")) // 4
+            answer_text = result.get("answer", "")
+            if hasattr(answer_text, 'content'):
+                answer_text = answer_text.content
+            token_estimate = len(question) // 4 + len(str(answer_text)) // 4
             self.stats["tokens_used"] += token_estimate
 
             # Processar e formatar fontes
             sources = self.source_processor.process(result.get("source_documents", []))
-
-            return {
+            
+            response = {
                 "resposta": result.get("answer", ""),
                 "fontes": sources,
                 "confiança": self._calculate_confidence(sources),
             }
+            
+            # Adicionar informações de classificação se disponível
+            if query_classification:
+                response["query_info"] = {
+                    "type": query_classification.query_type.value,
+                    "confidence": query_classification.confidence,
+                    "keywords": query_classification.keywords_matched
+                }
+            
+            return response
 
         except Exception as e:
             self.logger.error(f"Erro ao processar consulta: {str(e)}")
@@ -204,7 +240,58 @@ class ConversationManager:
                 "resposta": f"Ocorreu um erro ao processar sua consulta: {str(e)}",
                 "fontes": [],
                 "confiança": 0.0,
+                "error": str(e)
             }
+    
+    def _query_with_smart_prompt(self, question: str, classification) -> Dict[str, Any]:
+        """
+        Executa query usando prompt template especializado.
+        """
+        try:
+            # Obter documentos primeiro
+            docs = self.retriever.get_relevant_documents(question)
+            
+            # Converter para formato compatível com prompt manager
+            context_docs = []
+            for doc in docs:
+                context_docs.append({
+                    'text': doc.page_content,
+                    'metadata': doc.metadata
+                })
+            
+            # Enriquecer contexto baseado no tipo de query
+            enhanced_context = self.prompt_manager.enhance_context(
+                context_docs, classification.query_type, question
+            )
+            
+            # Obter template especializado
+            template = self.prompt_manager.get_template(classification.query_type)
+            
+            # Gerar resposta usando o template
+            formatted_prompt = template.format(
+                context=enhanced_context,
+                question=question
+            )
+            
+            # Usar LLM diretamente com prompt customizado
+            # Para compatibilidade com ConversationalRetrievalChain, 
+            # simulamos o resultado esperado
+            llm_response = self.conversation_chain.combine_docs_chain.llm_chain.llm(
+                formatted_prompt
+            )
+            
+            # Extrair conteúdo se for AIMessage
+            answer_text = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
+            
+            return {
+                "answer": answer_text,
+                "source_documents": docs
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Erro em smart prompt query: {e}")
+            # Fallback para query normal
+            return self.conversation_chain({"question": question})
 
     def _process_source_documents(self, documents) -> List[Dict[str, Any]]:
         """
@@ -311,8 +398,9 @@ class ConversationManager:
         session_data = {
             "session_id": self.session_id,
             "model_name": self.model_name,
-            "temperature": self.temperature,
             "memory_enabled": self.memory_enabled,
+            "enable_query_routing": self.enable_query_routing,
+            "enable_smart_prompts": self.enable_smart_prompts,
             "stats": self.get_stats(),
             "timestamp": datetime.now().isoformat(),
         }

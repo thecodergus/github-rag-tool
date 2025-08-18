@@ -7,22 +7,29 @@ from langchain_community.document_loaders import TextLoader
 from github_rag.clients.github_client import GitHubClient
 from .issues_loader import IssueProcessor
 from .code_loader import CodeProcessor
+from .smart_chunking import SmartChunker
 
 
 class GitHubDataLoader:
     """Carregador de dados do GitHub para vectorização"""
 
-    def __init__(self, github_client: GitHubClient):
+    def __init__(self, github_client: GitHubClient, use_smart_chunking: bool = True):
         """
         Inicializa o carregador de dados do GitHub
 
         Args:
             github_client: Cliente GitHub autenticado para buscar dados
+            use_smart_chunking: Se deve usar chunking inteligente ou tradicional
         """
         self.github_client = github_client
         self.issues_df = None
         self.code_files = None
         self.text_splitter = None
+        self.use_smart_chunking = use_smart_chunking
+        if use_smart_chunking:
+            self.smart_chunker = SmartChunker()
+        else:
+            self.smart_chunker = None
 
     def load_data(
         self,
@@ -96,6 +103,55 @@ class GitHubDataLoader:
         Returns:
             Lista de documentos processados com texto e metadados
         """
+        # Usar chunking inteligente se habilitado
+        if self.use_smart_chunking and self.smart_chunker:
+            return self._create_smart_chunks(chunk_size, chunk_overlap)
+        
+        # Fallback para chunking tradicional
+        return self._create_traditional_chunks(chunk_size, chunk_overlap)
+    
+    def _create_smart_chunks(self, chunk_size: int, chunk_overlap: int) -> List[Dict[str, Any]]:
+        """
+        Cria chunks usando o sistema inteligente.
+        """
+        print("🧠 Usando chunking inteligente...")
+        
+        # Configurar tamanhos baseados no tipo de conteúdo
+        self.smart_chunker = SmartChunker(
+            code_chunk_size=min(chunk_size, 2000),
+            doc_chunk_size=min(chunk_size * 1.5, 3000),
+            issue_chunk_size=min(chunk_size * 1.2, 2500)
+        )
+        
+        raw_documents = []
+        
+        # Processar issues
+        if self.issues_df is not None and not self.issues_df.empty:
+            raw_documents.extend(self._get_raw_issue_documents())
+        
+        # Processar código
+        if self.code_files:
+            raw_documents.extend(self._get_raw_code_documents())
+        
+        # Aplicar chunking inteligente
+        smart_chunks = self.smart_chunker.chunk_documents(raw_documents)
+        
+        # Imprimir estatísticas
+        stats = self.smart_chunker.get_chunk_stats(smart_chunks)
+        print(f"📊 Estatísticas do chunking inteligente:")
+        print(f"   - Total de chunks: {stats.get('total_chunks', 0)}")
+        print(f"   - Tipos de chunk: {stats.get('chunk_types', {})}")
+        print(f"   - Linguagens detectadas: {stats.get('languages_detected', {})}")
+        print(f"   - Tamanho médio: {stats.get('average_chunk_size', 0)} caracteres")
+        
+        return smart_chunks
+    
+    def _create_traditional_chunks(self, chunk_size: int, chunk_overlap: int) -> List[Dict[str, Any]]:
+        """
+        Cria chunks usando o método tradicional.
+        """
+        print("📝 Usando chunking tradicional...")
+        
         # Configura o divisor de texto se ainda não estiver configurado
         if not self.text_splitter:
             self.configure_text_splitter(chunk_size, chunk_overlap)
@@ -112,6 +168,59 @@ class GitHubDataLoader:
             documents.extend(code_documents)
 
         return documents
+    
+    def _get_raw_issue_documents(self) -> List[Dict[str, Any]]:
+        """
+        Retorna documentos de issues em formato bruto para chunking inteligente.
+        """
+        raw_docs = []
+        
+        for _, row in self.issues_df.iterrows():
+            is_pr = "pull_request" in row
+            item_type = "Pull Request" if is_pr else "Issue"
+            source_type = "pull_request" if is_pr else "issue"
+            item_number = row["number"]
+            
+            # Construir texto completo
+            item_text = self._build_item_text(row, item_type, item_number)
+            item_text = self._add_comments_to_text(item_text, row)
+            
+            # Criar metadados enriquecidos
+            metadata = self._create_item_metadata(row, item_number, item_type)
+            
+            raw_docs.append({
+                'text': item_text,
+                'metadata': metadata
+            })
+        
+        return raw_docs
+    
+    def _get_raw_code_documents(self) -> List[Dict[str, Any]]:
+        """
+        Retorna documentos de código em formato bruto para chunking inteligente.
+        """
+        raw_docs = []
+        
+        for file_info in self.code_files:
+            content = file_info.get("content", "")
+            if not content:
+                continue
+            
+            # Metadados enriquecidos para código
+            metadata = {
+                "source": "code",
+                "filename": file_info["name"],
+                "url": file_info["url"],
+                "extension": os.path.splitext(file_info["name"])[1],
+                "file_path": file_info["name"],  # Para compatibilidade
+            }
+            
+            raw_docs.append({
+                'text': content,  # Sem enhancement inicial - deixar para o smart chunker
+                'metadata': metadata
+            })
+        
+        return raw_docs
 
     def _process_issues(self) -> List[Dict[str, Any]]:
         """

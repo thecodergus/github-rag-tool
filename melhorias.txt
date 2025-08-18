@@ -1,0 +1,87 @@
+🚀 Propostas de Melhorias por Componente
+
+  A) Sistema de Chunking Inteligente
+
+  ★ Insight ─────────────────────────────────────
+  O chunking atual quebra código arbitrariamente. A melhoria proposta usa análise AST para respeitar estruturas lógicas, mantendo contexto semântico completo em cada chunk.
+  ─────────────────────────────────────────────────
+
+  Implementar chunking híbrido:
+  - Código: AST-based chunking (respeita funções/classes completas)
+  - Issues/PRs: Semantic splitting (mantém discussões relacionadas)
+  - Tamanhos adaptativos: 1-4KB para código, 2-8KB para documentação
+  - Overlap inteligente: Baseado em dependências, não tamanho fixo
+
+  B) Sistema de Embeddings Multi-Modal
+
+  Implementar pipeline de embeddings especializado:
+  - Code embeddings: Modelo específico para código (ex: CodeBERT)
+  - Domain embeddings: Fine-tuning em repositórios similares
+  - Metadata enrichment: Incluir tipo de arquivo, linguagem, complexidade
+  - Hybrid search: Combinar embeddings densos com sparse (BM25)
+
+  C) Recuperação Avançada
+
+  Implementar recuperação em múltiplas etapas:
+
+  1. Retrieve: Buscar ~50 documentos candidatos
+  2. Rerank: Usar modelo cross-encoder para reordenação
+  3. Filter: Aplicar filtros de qualidade e relevância
+  4. Diversify: MMR adaptativo baseado no tipo de consulta
+
+  D) Sistema de RAG Agentic
+
+  Implementar arquitetura multi-agente:
+  - Query Router: Classifica tipo de consulta (código/docs/debug)
+  - Specialized Retrievers: Um retriever otimizado por tipo
+  - Answer Synthesizer: Combina múltiplas fontes de forma coerente
+
+  E) Melhorias na Base de Conhecimento
+
+  Enriquecer metadados e estrutura:
+  - Graph connections: Conectar arquivos relacionados
+  - Temporal indexing: Considerar versões e historico
+  - Quality scoring: Score de qualidade para cada chunk
+  - Context windows: Manter janelas de contexto entre chunks relacionados
+
+  ---
+  🛠️ Implementação Prática - Prioridades
+
+  Fase 1 - Melhorias Imediatas (Alto Impacto, Baixo Esforço)
+
+  1. Otimizar parâmetros de chunking:
+    - Reduzir chunk_size para 2-4KB
+    - Implementar overlap semântico
+    - Usar RecursiveCharacterTextSplitter
+  2. Implementar reranking simples:
+    - Adicionar modelo cross-encoder
+    - Usar sentence-transformers/ms-marco-MiniLM-L-12-v2
+  3. Melhorar prompt engineering:
+    - Templates específicos por tipo de consulta
+    - Incluir mais contexto sobre tipo de arquivo/linguagem
+
+  Fase 2 - Melhorias Estruturais (Alto Impacto, Médio Esforço)
+
+  1. Implementar chunking especializado:
+    - AST-based para código Python/JS
+    - Semantic splitting para markdown/docs
+  2. Sistema de embeddings híbrido:
+    - Combinar denso + sparse (BM25)
+    - Adicionar embeddings específicos de código
+  3. Query routing inteligente:
+    - Classificar consultas automaticamente
+    - Aplicar estratégias de retrieval específicas
+
+  Fase 3 - Arquitetura Avançada (Alto Impacto, Alto Esforço)
+
+  1. Sistema multi-agente
+  2. Graph-based knowledge
+  3. Fine-tuning de embeddings específicos
+
+  ---
+  📊 Métricas de Qualidade Propostas
+
+  - Relevância: NDCG@k nos documentos retornados
+  - Cobertura: % de conceitos importantes incluídos na resposta
+  - Precisão: Accuracy das informações técnicas
+  - Contexto: Coherence score entre chunks relacionados
