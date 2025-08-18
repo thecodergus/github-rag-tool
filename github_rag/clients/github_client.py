@@ -9,6 +9,10 @@ import logging
 
 from github_rag.utils import parse_github_repo_url
 
+from github_rag.clients.cache import CacheManager
+from github_rag.clients.http import HTTPRequestManager
+from github_rag.clients.logger import setup_logger
+
 
 class GitHubClient:
     """
@@ -44,16 +48,10 @@ class GitHubClient:
                 "⚠️ Operando sem token de autenticação. Limites de taxa serão mais restritivos."
             )
 
-        # Configuração de cache
-        self.use_cache = use_cache
-        self.cache_dir = cache_dir
-        self.cache_ttl = cache_ttl
-
-        if use_cache and not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
-
-        # Configuração de logging
-        self.logger = self._setup_logger(log_level)
+        # Instanciar gerenciadores de cache, HTTP e logger
+        self.cache_manager = CacheManager(cache_dir=cache_dir, cache_ttl=cache_ttl, use_cache=use_cache)
+        self.http_client = HTTPRequestManager()
+        self.logger = setup_logger(f"GitHubClient-{self.owner}-{self.repo}", log_level)
 
         # Estatísticas de uso da API
         self.requests_made = 0
@@ -205,14 +203,12 @@ class GitHubClient:
         Returns:
             Dict: Resposta da API em formato JSON ou None em caso de erro
         """
-        use_cache = self.use_cache if use_cache is None else use_cache
+        use_cache = self.cache_manager.use_cache if use_cache is None else use_cache
 
-        # Gerar chave de cache e verificar se temos dados em cache
+        # Verificar cache
         if method == "GET" and use_cache:
-            cache_key = self._get_cache_key(url, params)
-            cached_data = self._get_from_cache(cache_key)
-
-            if cached_data:
+            cached_data = self.cache_manager.get(url, params)
+            if cached_data is not None:
                 self.logger.debug(f"🔄 Usando dados em cache para: {url}")
                 return cached_data
 
@@ -222,24 +218,14 @@ class GitHubClient:
 
         while retries < max_retries:
             try:
-                if method == "GET":
-                    response = requests.get(
-                        url, headers=self.headers, params=params, timeout=30
-                    )
-                elif method == "POST":
-                    response = requests.post(
-                        url, headers=self.headers, params=params, json=data, timeout=30
-                    )
-                elif method == "PUT":
-                    response = requests.put(
-                        url, headers=self.headers, params=params, json=data, timeout=30
-                    )
-                elif method == "DELETE":
-                    response = requests.delete(
-                        url, headers=self.headers, params=params, timeout=30
-                    )
-                else:
-                    raise ValueError(f"Método HTTP não suportado: {method}")
+                # Executar requisição HTTP
+                response = self.http_client.request(
+                    method=method,
+                    url=url,
+                    headers=self.headers,
+                    params=params or {},
+                    data=data,
+                )
 
                 # Salvar a última resposta para uso em outros métodos
                 self.last_response = response
@@ -255,7 +241,7 @@ class GitHubClient:
 
                     # Salvar em cache se for GET
                     if method == "GET" and use_cache:
-                        self._save_to_cache(cache_key, result)
+                        self.cache_manager.set(url, params, result)
 
                     # Avisar se estiver com poucas requisições restantes
                     if remaining < (limit * 0.1) and limit > 0:

@@ -4,7 +4,7 @@ import logging
 import time
 import re
 from datetime import datetime
-from typing import Optional, Dict, Any, List, Tuple, Union
+from typing import Optional, Dict, Any, List, Tuple
 from contextlib import contextmanager
 from functools import wraps
 
@@ -15,11 +15,12 @@ logging.basicConfig(
 logger = logging.getLogger("github_rag_utils")
 
 
+# Environment Utilities
 def setup_environment(
     env_file: str = ".env",
     required_keys: List[str] = None,
     optional_keys: List[str] = None,
-) -> Dict[str, bool]:
+) -> bool:
     """
     Configura variáveis de ambiente a partir do arquivo .env e valida as chaves necessárias.
 
@@ -29,7 +30,7 @@ def setup_environment(
         optional_keys: Lista de chaves opcionais a verificar
 
     Returns:
-        Dicionário com o status de cada chave (True se presente, False se ausente)
+        True se todas as chaves obrigatórias estiverem presentes, False caso contrário
     """
     from dotenv import load_dotenv
 
@@ -78,9 +79,11 @@ def setup_environment(
         except AttributeError:
             logger.warning(f"Nível de log inválido: {log_level}")
 
-    return env_status
+    # Retorna True se todas as chaves obrigatórias estiverem presentes, False caso contrário
+    return all(env_status[key] for key in required_keys)
 
 
+# ID Generation Utilities
 def generate_session_id(
     prefix: str = "session",
     use_timestamp: bool = True,
@@ -130,6 +133,7 @@ def generate_session_id(
     return "_".join(components)
 
 
+# MongoDB Connection Utilities
 def parse_mongo_connection(
     connection_string: Optional[str] = None,
     db_name: Optional[str] = None,
@@ -173,6 +177,7 @@ def parse_mongo_connection(
     return {"uri": conn_str, "db_name": db_name, "collection_name": collection_name}
 
 
+# File Utilities - Temporary File Handler
 @contextmanager
 def temp_file_handler(content: str, suffix: str = ".tmp") -> str:
     """
@@ -199,6 +204,7 @@ def temp_file_handler(content: str, suffix: str = ".tmp") -> str:
             logger.warning(f"Erro ao remover arquivo temporário {temp.name}: {e}")
 
 
+# Timing Utilities - Execution Timer
 def timing_decorator(func):
     """
     Decorador para medir o tempo de execução de funções.
@@ -222,6 +228,7 @@ def timing_decorator(func):
     return wrapper
 
 
+# Logging Utilities - Repository Log Formatter
 def format_repository_log(repo_name: str, action: str, details: Dict[str, Any]) -> str:
     """
     Formata logs específicos para operações com repositórios GitHub.
@@ -239,6 +246,7 @@ def format_repository_log(repo_name: str, action: str, details: Dict[str, Any]) 
     return f"[{timestamp}] [{repo_name}] {action.upper()}: {detail_str}"
 
 
+# System Utilities - Memory Usage
 def get_memory_usage() -> Dict[str, float]:
     """
     Obtém estatísticas de uso de memória para o processo atual.
@@ -259,6 +267,7 @@ def get_memory_usage() -> Dict[str, float]:
     }
 
 
+# Parsing Utilities - GitHub Repository URL
 def parse_github_repo_url(url: str) -> Tuple[str, str]:
     """
     Extrai o proprietário (owner) e o nome do repositório a partir de uma URL do GitHub.

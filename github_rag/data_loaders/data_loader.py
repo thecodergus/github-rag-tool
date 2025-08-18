@@ -4,7 +4,9 @@ from typing import List, Dict, Optional, Any, Union, Tuple
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 
-from github_rag.github_client import GitHubClient
+from github_rag.clients.github_client import GitHubClient
+from .issues_loader import IssueProcessor
+from .code_loader import CodeProcessor
 
 
 class GitHubDataLoader:

@@ -66,6 +66,32 @@ Execute o script sem argumentos e forneça a URL quando solicitado:
 ```bash
 python main.py
 ```
+### Uso via API Python
+
+```python
+from github_rag import SessionManager
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+config_options = {
+    "chunk_size": 1200,
+    "chunk_overlap": 300,
+    "retriever_k": 7,
+    "use_memory": True,
+    "memory_window": 5,
+}
+
+session_manager = SessionManager(
+    repo_url="https://github.com/username/repo",
+    initial_config=config_options,
+    embeddings_model=os.getenv("OPENAI_EMBBEDDING_MODEL"),
+)
+session_manager.setup(limit_issues=100, rebuild=False)
+result = session_manager.query("Qual é o propósito deste projeto?")
+print(result["resposta"])
+```
 
 ### Fluxo de Trabalho
 

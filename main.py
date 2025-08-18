@@ -4,7 +4,7 @@ import time
 import argparse
 from typing import Dict, Any
 from dotenv import load_dotenv
-from github_rag import GitHubRagTool
+from github_rag import SessionManager
 from github_rag.utils import setup_environment
 
 
@@ -45,21 +45,16 @@ def main():
     }
 
     # Criar a ferramenta RAG
-    print("🔧 Inicializando a ferramenta RAG...")
+    print("🔧 Configurando sessão RAG...")
     start_time = time.time()
-    rag_tool = GitHubRagTool(
+    session_manager = SessionManager(
         repo_url=repo_url,
-        content_types=[
-            "code",
-            "issue",
-            "pull_request",
-        ],  # Incluindo PRs para mais contexto
-        custom_model=os.environ.get("OPENAI_EMBBENDING_MODEL"),
-        temperature=0.0,  # Temperatura mais baixa para respostas mais consistentes
+        initial_config=config_options,
+        embeddings_model=os.environ.get("OPENAI_EMBBENDING_MODEL"),
     )
 
     # Aplicar configurações
-    rag_tool.configure(config_options)
+    # Configurações aplicadas via SessionManager
     print(f"⚙️ Configurações aplicadas: {json.dumps(config_options, indent=2)}")
 
     # Verificar se devemos reconstruir a base
@@ -69,8 +64,8 @@ def main():
     )
 
     # Construir base de conhecimento
-    print("🔍 Construindo base de conhecimento...")
-    success = rag_tool.build_knowledge_base(
+    print("🔍 Construindo a sessão RAG...")
+    success = session_manager.setup(
         limit_issues=100, rebuild=rebuild  # Limitamos a 100 issues
     )
 
@@ -82,7 +77,7 @@ def main():
     print(f"✅ Preparação concluída em {setup_time:.2f} segundos")
 
     # Mostrar status da ferramenta
-    status = rag_tool.get_status()
+    status = session_manager.get_status()
     print("\n📊 Status da Ferramenta:")
     print(f"- Sessão: {status['session_id']}")
     print(f"- Modelo de Chat: {os.environ.get('OPENAI_MODEL')}")
@@ -105,7 +100,7 @@ def main():
         if question.lower() in ["sair", "exit", "quit"]:
             break
         elif question.lower() == "status":
-            current_status = rag_tool.get_status()
+            current_status = session_manager.get_status()
             print("\n📊 Estatísticas Atuais:")
             print(f"- Consultas realizadas: {current_status['stats']['queries_count']}")
             print(
@@ -121,7 +116,7 @@ def main():
             continue
         elif question.lower().startswith("fontes "):
             query = question[7:].strip()  # Remove o comando "fontes "
-            sources = rag_tool.search_sources(query, limit=10)
+            sources = session_manager.search_sources(query, limit=10)
             print("\n📚 Fontes encontradas:")
             for source in sources:
                 print(f"- [{source['index']}] Score: {source['score']:.4f}")
@@ -136,7 +131,7 @@ def main():
         # Consulta normal
         start_query_time = time.time()
         print("⏳ Processando consulta...")
-        result = rag_tool.query(question)
+        result = session_manager.query(question)
         query_time = time.time() - start_query_time
 
         # Exibir resultado
@@ -191,7 +186,7 @@ def main():
     # Salvar sessão automaticamente
     save_dir = f"./sessions/{repo_name}_{int(time.time())}"
     print(f"\n💾 Salvando sessão em {save_dir}...")
-    success = rag_tool.save_session(save_dir)
+    success = session_manager.save_session(save_dir)
 
     if success:
         print("✅ Sessão salva com sucesso")

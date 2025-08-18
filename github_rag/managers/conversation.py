@@ -10,6 +10,9 @@ import json
 import os
 from datetime import datetime
 
+from .history_formatter import HistoryFormatter
+from .source_document_processor import SourceDocumentProcessor
+
 
 class ConversationManager:
     """
@@ -61,6 +64,8 @@ class ConversationManager:
             "tokens_used": 0,
             "start_time": datetime.now().isoformat(),
         }
+        self.history_formatter = HistoryFormatter()
+        self.source_processor = SourceDocumentProcessor()
 
         # Configurar logger
         logging.basicConfig(level=logging.INFO if verbose else logging.WARNING)
@@ -147,7 +152,7 @@ class ConversationManager:
             return_source_documents=True,
             combine_docs_chain_kwargs={"prompt": qa_prompt},
             verbose=self.verbose,
-            get_chat_history=self._get_formatted_chat_history,
+            get_chat_history=self.history_formatter.format,
         )
 
         self.logger.info(
@@ -155,13 +160,7 @@ class ConversationManager:
         )
 
     def _get_formatted_chat_history(self, chat_history):
-        """Formata o histórico de chat para contexto adequado"""
-        formatted_history = ""
-        for message in chat_history:
-            if isinstance(message, tuple) and len(message) == 2:
-                human, ai = message
-                formatted_history += f"Humano: {human}\nAssistente: {ai}\n\n"
-        return formatted_history
+        return self.history_formatter.format(chat_history)
 
     def query(self, question: str) -> Dict[str, Any]:
         """
@@ -188,7 +187,7 @@ class ConversationManager:
             self.stats["tokens_used"] += token_estimate
 
             # Processar e formatar fontes
-            sources = self._process_source_documents(result.get("source_documents", []))
+            sources = self.source_processor.process(result.get("source_documents", []))
 
             return {
                 "resposta": result.get("answer", ""),
