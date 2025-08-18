@@ -57,11 +57,8 @@ def main():
     # Configurações aplicadas via SessionManager
     print(f"⚙️ Configurações aplicadas: {json.dumps(config_options, indent=2)}")
 
-    # Verificar se devemos reconstruir a base
-    rebuild = (
-        input("Reconstruir a base de conhecimento? (s/n, padrão: n): ").strip().lower()
-        == "s"
-    )
+    # Sempre reconstruir a base de conhecimento
+    rebuild = True
 
     # Construir base de conhecimento
     print("🔍 Construindo a sessão RAG...")

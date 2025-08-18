@@ -55,7 +55,6 @@ class SessionManager:
             retriever=retriever,
             model_name=config.get("custom_model", os.environ.get("OPENAI_MODEL")),
             session_id=config.get("session_id"),
-            temperature=config.get("temperature", 0.7),
             memory_enabled=config.get("use_memory", True),
             memory_window=config.get("memory_window", 5),
             retriever_k=config.get("retriever_k", 5),

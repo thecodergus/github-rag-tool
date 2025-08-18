@@ -14,7 +14,11 @@ class VectorPersistence:
         persist_directory: str = "./github_rag_db",
         collection_name: str = "github_data",
     ):
-        self.embeddings = embeddings_model or OpenAIEmbeddings()
+        # Se embeddings_model for string, instancia OpenAIEmbeddings com nome do modelo
+        if isinstance(embeddings_model, str):
+            self.embeddings = OpenAIEmbeddings(model=embeddings_model)
+        else:
+            self.embeddings = embeddings_model or OpenAIEmbeddings()
         self.vector_db = None
         self.persist_directory = persist_directory
         self.collection_name = collection_name

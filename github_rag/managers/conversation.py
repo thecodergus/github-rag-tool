@@ -25,7 +25,6 @@ class ConversationManager:
         retriever: Any,
         model_name: str = "gpt-4o",
         session_id: Optional[str] = None,
-        temperature: float = 0.7,
         memory_enabled: bool = True,
         memory_window: int = 5,
         retriever_k: int = 5,
@@ -39,7 +38,6 @@ class ConversationManager:
             retriever: O recuperador de documentos a ser usado para RAG
             model_name: Nome do modelo LLM a ser utilizado
             session_id: Identificador único da sessão de conversação
-            temperature: Temperatura para geração de respostas (0.0-1.0)
             memory_enabled: Se a memória de conversação deve ser habilitada
             memory_window: Número de trocas de mensagens a manter na memória
             retriever_k: Número de documentos a recuperar por consulta
@@ -51,7 +49,6 @@ class ConversationManager:
         self.session_id = (
             session_id or f"session_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         )
-        self.temperature = temperature
         self.memory_enabled = memory_enabled
         self.memory_window = memory_window
         self.retriever_k = retriever_k
@@ -136,13 +133,19 @@ class ConversationManager:
         )
 
         # Configurar LLM
-        llm = ChatOpenAI(
-            model_name=os.environ.get("OPENAI_MODEL"),
-            temperature=self.temperature,
-            streaming=self.streaming,
-            callbacks=callbacks,
-            verbose=self.verbose,
-        )
+        # Tentar configurar com temperatura primeiro, fallback sem temperatura se não suportado
+        model_name_env = os.environ.get("OPENAI_MODEL") or self.model_name
+        llm_kwargs = {
+            "model_name": model_name_env,
+            "streaming": self.streaming,
+            "callbacks": callbacks,
+            "verbose": self.verbose,
+        }
+        
+        try:
+            llm = ChatOpenAI(**llm_kwargs)
+        except Exception as e:
+            raise e
 
         # Configurar cadeia de conversação
         self.conversation_chain = ConversationalRetrievalChain.from_llm(
